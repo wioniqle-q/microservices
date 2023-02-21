@@ -71,7 +71,7 @@ public class PropertyDeriveModel
         ModifiedDate = modifiedDate;
     }
 
-    //[DataMember]
+    [DataMember]
     [BsonElement("UserId")]
     public virtual Object? UserId { get; set; }
 

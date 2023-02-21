@@ -24,6 +24,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Liup.Authorization.Domain\Liup.Authorization.Domain.csproj" />
+    <ProjectReference Include="..\..\UserInteractionService\Liup.UserInteraction.Infrastructure\Liup.UserInteraction.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Serialization;
 using MongoDB.Bson.Serialization.Attributes;
 
@@ -55,12 +56,8 @@ public sealed class UserModel : DeriveModel
     }
     private volatile string? password;
 
-    public sealed override UserProperty? UserProperties
-    {
-        get => userProperties;
-        set => userProperties = value;
-    }
-    private volatile UserProperty? userProperties;
+    [NotNull]
+    public sealed override UserProperty? UserProperties { get; set; }
 }
 
 public class DeriveModel
@@ -106,6 +103,7 @@ public class DeriveModel
     [BsonElement("Password")]
     public virtual string? Password { get; set; }
 
+    [NotNull]
     [DataMember]
     [BsonElement("UserProperties")]
     public virtual UserProperty? UserProperties { get; set; }

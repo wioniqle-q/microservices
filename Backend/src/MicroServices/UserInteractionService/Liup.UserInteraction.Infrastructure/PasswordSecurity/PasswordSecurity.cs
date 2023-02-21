@@ -13,7 +13,7 @@ enum ArgonConfig
     MemoryCost = 1024,
     Lanes = 1,
     Threads = 1,
-    HashLength = 20
+    HashLength = 75
 }
 
 public static class PasswordSecurity

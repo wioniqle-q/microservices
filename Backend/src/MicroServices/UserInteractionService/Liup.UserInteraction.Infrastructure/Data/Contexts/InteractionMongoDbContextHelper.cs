@@ -30,7 +30,7 @@ public class InteractionMongoDbContextHelper : IInteractionMongoDbContextHelper
     {
         await @Context.GetCollection<T>(@Context.DatabaseName).InsertOneAsync(document, cancellationToken: cancellationToken);
     }
-    
+
     public virtual async Task<UpdateResult> UpdateOneAsync<T>(Expression<Func<T, bool>> predicate, UpdateDefinition<T> update, CancellationToken cancellationToken = default)
     {
         return await @Context.GetCollection<T>(@Context.DatabaseName).UpdateOneAsync(predicate, update, cancellationToken: cancellationToken);

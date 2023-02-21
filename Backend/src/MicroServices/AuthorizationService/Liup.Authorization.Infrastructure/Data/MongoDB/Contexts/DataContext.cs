@@ -14,7 +14,7 @@ public sealed class DataContext : IDataContext
         Database = configurations.Database;
     }
 
-    public string DatabaseName => Database.DatabaseNamespace.DatabaseName;
+    public string DatabaseName => "Authorization";
 
     public IMongoCollection<T> GetCollection<T>(string name) => Database.GetCollection<T>(name);
 

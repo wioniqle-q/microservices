@@ -2,8 +2,12 @@ using System.Threading.RateLimiting;
 using FluentValidation;
 using Liup.Authorization.Application.Authorization.Manager.Handlers;
 using Liup.Authorization.Application.Authorization.Manager.Requests;
+using Liup.Authorization.Infrastructure.CredentialVerification.Interfaces;
+using Liup.Authorization.Infrastructure.CredentialVerification.MongoDB.CVerification;
 using Liup.Authorization.Infrastructure.Data.MongoDB.Initializer;
 using Liup.Authorization.Infrastructure.Data.MongoDB.Options;
+using Liup.Authorization.Infrastructure.GlobalEncryption.Encryption;
+using Liup.Authorization.Infrastructure.GlobalEncryption.Interfaces;
 using Liup.Authorization.Infrastructure.MessageBroker.EventBus.RabbitMq;
 using Liup.UserInteraction.Infrastructure.Data.Contexts;
 using Liup.UserInteraction.Infrastructure.Data.Initializer;
@@ -120,6 +124,9 @@ public static class Initialize
     {
         services.AddSingleton<IUserInvestigation, UserInvestigation>();
         services.AddSingleton<InvestigationResult>();
+
+        services.AddSingleton<IEncryptionProvider, EncryptionProvider>();
+        services.AddSingleton<ICredentialAuthenticityAssessment, CredentialAuthenticityAssessment>();
     }
 
     private static void InitializeVersionEra(this IServiceCollection services)
