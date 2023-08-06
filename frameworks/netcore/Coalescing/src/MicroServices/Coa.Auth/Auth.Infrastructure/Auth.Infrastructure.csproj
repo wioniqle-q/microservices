@@ -1,0 +1,46 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+        <DebugType>embedded</DebugType>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+        <DebugType>embedded</DebugType>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="ConfigCat.Client" Version="8.2.0"/>
+        <PackageReference Include="HtmlSanitizer" Version="8.0.645"/>
+        <PackageReference Include="MassTransit" Version="8.0.16"/>
+        <PackageReference Include="MassTransit.RabbitMQ" Version="8.0.14"/>
+        <PackageReference Include="MediatR.Contracts" Version="2.0.1"/>
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="7.0.9"/>
+        <PackageReference Include="Microsoft.AspNetCore.SignalR.Common" Version="8.0.0-preview.6.23329.11"/>
+        <PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.Json" Version="8.0.0-preview.6.23329.11"/>
+        <PackageReference Include="Microsoft.Net.Http.Headers" Version="8.0.0-preview.6.23329.11"/>
+        <PackageReference Include="MongoDB.Bson" Version="2.20.0"/>
+        <PackageReference Include="MongoDB.Driver" Version="2.20.0"/>
+        <PackageReference Include="MongoDB.Driver.Core" Version="2.20.0"/>
+        <PackageReference Include="NetEscapades.AspNetCore.SecurityHeaders" Version="0.20.0"/>
+        <PackageReference Include="NetEscapades.AspNetCore.SecurityHeaders.TagHelpers" Version="0.20.0"/>
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.3"/>
+        <PackageReference Include="Polly" Version="8.0.0-alpha.7"/>
+        <PackageReference Include="Polly.Contrib.WaitAndRetry" Version="1.1.1"/>
+        <PackageReference Include="Pomelo.AntiXss" Version="2.0.0-rtm-10044"/>
+        <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="7.1.0-preview"/>
+        <PackageReference Include="System.Net.Http" Version="4.3.4"/>
+        <PackageReference Include="System.Text.RegularExpressions" Version="4.3.1"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\..\SharedLibrary\Endpoint\Coa.Shared.PermBehavior\Coa.Shared.PermBehavior.csproj"/>
+        <ProjectReference Include="..\Auth.Domain\Auth.Domain.csproj"/>
+    </ItemGroup>
+
+</Project>
