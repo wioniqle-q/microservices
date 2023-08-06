@@ -19,6 +19,7 @@
         <ProjectReference Include="..\..\MicroServices\Coa.Auth\Auth.Infrastructure\Auth.Infrastructure.csproj"/>
         <ProjectReference Include="..\..\SharedLibrary\Endpoint\Coa.Shared.PermBehavior\Coa.Shared.PermBehavior.csproj"/>
         <ProjectReference Include="..\..\SharedLibrary\IoC\Coa.Shared.IoC\Coa.Shared.IoC.csproj"/>
+       <ProjectReference Include="..\..\SharedLibrary\Totp\Coa.Shared.Totp\Coa.Shared.Totp.csproj" />
     </ItemGroup>
 
     <ItemGroup>

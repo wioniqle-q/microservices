@@ -21,6 +21,7 @@ var assemblies = new[]
     typeof(TransferServiceInstaller).Assembly,
     typeof(AdlemanServiceInstaller).Assembly,
     typeof(MongoDbServiceInstaller).Assembly,
+    typeof(TotpServiceInstaller).Assembly,
     typeof(GuidServiceInstaller).Assembly,
     typeof(ApiModuleInstaller).Assembly
 };
