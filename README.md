@@ -1,2 +1,2 @@
-# microservices
-Microservice architecture structure that will rise to Enterprise level.
+# microservices - beta
+I'll be add docs, concepts lists, testings, examples etc...
