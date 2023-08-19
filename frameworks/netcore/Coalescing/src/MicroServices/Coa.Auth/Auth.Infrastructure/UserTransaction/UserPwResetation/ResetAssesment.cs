@@ -36,33 +36,40 @@ public class ResetAssesment : ResetAssesmentAbstract
         var assesParams = await AssessReset(user!, userNewPassword);
         if (assesParams.Outcome is null)
             return await new ValueTask<OutcomeValue>(
-                new OutcomeValue("Unable to parse credential [ResetAssesment]", null, null, null, null, null, null,
-                    null, null, null));
+                new OutcomeValue
+                {
+                    Outcome = "Unable to parse credential [ResetAssesment]"
+                });
 
         return await new ValueTask<OutcomeValue>(assesParams);
     }
 
     protected virtual async Task<OutcomeValue> AssessReset(BaseUserEntitiy user, string userNewPassword)
     {
-        var assesConcealExists = await ResetAssessConcealment(user).ConfigureAwait(false);
+        var assesConcealExists = await ResetAssessConcealment(user);
         if (string.IsNullOrWhiteSpace(assesConcealExists.UserName) ||
             string.IsNullOrWhiteSpace(assesConcealExists.Password))
-            return new OutcomeValue("Unable to parse credential [ResetAssesment]", null, null, null, null, null, null,
-                null, null, null);
+            return new OutcomeValue
+            {
+                Outcome = "Unable to parse credential [ResetAssesment]"
+            };
 
-        var assesConcealNewPassword = await NewPasswordAssessConcealment(userNewPassword).ConfigureAwait(false);
+        var assesConcealNewPassword = await NewPasswordAssessConcealment(userNewPassword);
         if (string.IsNullOrWhiteSpace(assesConcealNewPassword))
-            return new OutcomeValue("Unable to parse credential [ResetAssesment]", null, null, null, null, null, null,
-                null, null, null);
+            return new OutcomeValue
+            {
+                Outcome = "Unable to parse credential [ResetAssesment]"
+            };
 
         var filter = Builders<BaseUserEntitiy>
-            .Filter.Eq(x => x.UserName, assesConcealExists.UserName);
+            .Filter.Eq(x => x.Email, assesConcealExists.Email);
 
-        var assesExists = await _userHelper.FindUserByQueryAsync(filter).ConfigureAwait(false);
+        var assesExists = await _userHelper.FindUserByQueryAsync(filter);
         if (assesExists is null || assesExists.UserProperty.IsDeleted)
-            return await new ValueTask<OutcomeValue>(new OutcomeValue("User not present [ResetAssesment]", null, null,
-                null, null, null, null,
-                null, null, null));
+            return await new ValueTask<OutcomeValue>(new OutcomeValue
+            {
+                Outcome = "User not present [ResetAssesment]"
+            });
 
         var transferBaseUserEntity = new BaseUserEntitiy
         {
@@ -88,16 +95,17 @@ public class ResetAssesment : ResetAssesmentAbstract
 
         var transferValidation = await _transfer.ValidateTransferRefreshToken(
             assesConcealExists.UserProperty.RefreshToken, transferBaseUserEntity, transferBaseDevice,
-            CancellationToken.None).ConfigureAwait(false);
+            CancellationToken.None);
 
         if (transferValidation.Status is not true)
         {
-            var faAsync = await UpdateUser2FaAsync(assesExists, CancellationToken.None).ConfigureAwait(false);
+            var faAsync = await UpdateUser2FaAsync(assesExists, CancellationToken.None);
             if (faAsync is not true)
-                return await new ValueTask<OutcomeValue>(new OutcomeValue(
-                    "An unidentified situation has occurred on system, Please contact the system administrator.", null,
-                    null, null, null, null, null,
-                    null, null, null));
+                return await new ValueTask<OutcomeValue>(new OutcomeValue
+                {
+                    Outcome =
+                        "An unidentified situation has occurred on system, Please contact the system administrator."
+                });
 
             var unAuthorisedEvent = new UnAuthorisedEvent
             {
@@ -110,52 +118,22 @@ public class ResetAssesment : ResetAssesmentAbstract
                 Device = assesConcealExists.Device
             };
 
-            await _eventBus.PublishAsync(unAuthorisedEvent, default).ConfigureAwait(false);
+            await _eventBus.PublishAsync(unAuthorisedEvent, default);
 
-            return await new ValueTask<OutcomeValue>(new OutcomeValue(
-                "Wes have detected unusual activity on your account. Please confirm the verification link sent to your email address to complete the verification step of our system. If you are aware of a problem with your account, please do not forget to contact us. Our system will take action to protect you. Thank you for your patience.",
-                null, null, null, null, null, null,
-                null, null, null));
-        }
-
-        switch (assesExists.UserProperty)
-        {
-            case { IsLocked: true, IsEmailConfirmed: false }:
+            return await new ValueTask<OutcomeValue>(new OutcomeValue
             {
-                var unAuthorisedEvent = new UnAuthorisedEvent
-                {
-                    UserName = assesExists.UserName,
-                    FirstName = assesExists.FirstName,
-                    MiddleName = assesExists.MiddleName,
-                    LastName = assesExists.LastName,
-                    Email = assesExists.Email,
-                    UserProperty = assesExists.UserProperty,
-                    Device = assesConcealExists.Device
-                };
-
-                await _eventBus.PublishAsync(unAuthorisedEvent, default).ConfigureAwait(false);
-
-                return await new ValueTask<OutcomeValue>(
-                    new OutcomeValue(
-                        "Email confirmation is required to activate your account. Please double check your email address.",
-                        null, null, null, null, null, null,
-                        null, null, null));
-            }
-            case { IsLocked: true, Require2Fa: true }:
-                return await new ValueTask<OutcomeValue>(
-                    new OutcomeValue(
-                        "Please verify the link in your email. You are now in the 2-step verification process. If you prefer to run a 2-step verification every 30 or 90 days, contact the board administrator.",
-                        null, null, null, null, null, null,
-                        null, null, null));
+                Outcome =
+                    "Wes have detected unusual activity on your account. Please confirm the verification link sent to your email address to complete the verification step of our system. If you are aware of a problem with your account, please do not forget to contact us. Our system will take action to protect you. Thank you for your patience.",
+                Description = transferValidation.Description
+            });
         }
 
-        var verifySignature = await _userSignature.ValidateUserTokenLifeTime(assesExists.UserProperty.Token)
-            .ConfigureAwait(false);
+        var verifySignature = await _userSignature.ValidateUserTokenLifeTime(assesExists.UserProperty.Token);
         if (verifySignature is false)
         {
             var currenTime = DateTime.UtcNow;
             var updatedTime = currenTime.AddDays(14);
-            var randomTransactionString = await GenerateRandomHexString().ConfigureAwait(false);
+            var randomTransactionString = await GenerateRandomHexString();
 
             var userSignatureInfo = new BaseUserSignatureEntitiy
             {
@@ -171,9 +149,11 @@ public class ResetAssesment : ResetAssesmentAbstract
 
             var reSignProcess = await _userHelper
                 .UpdateUserTokenAsync(new BaseUserEntitiy { UserName = assesExists.UserName }, userSignatureInfo,
-                    CancellationToken.None).ConfigureAwait(false);
-            return await new ValueTask<OutcomeValue>(new OutcomeValue(reSignProcess, null, null, null, null, null, null,
-                null, null, null));
+                    CancellationToken.None);
+            return await new ValueTask<OutcomeValue>(new OutcomeValue
+            {
+                Outcome = reSignProcess
+            });
         }
 
         var attackSignature = await _userHelper
@@ -182,15 +162,16 @@ public class ResetAssesment : ResetAssesmentAbstract
                     UserName = assesExists.UserName, UserProperty = new BaseUserProperty
                         { TimeZone = assesConcealExists.UserProperty.TimeZone }
                 }, DateTime.UtcNow,
-                CancellationToken.None).ConfigureAwait(false);
+                CancellationToken.None);
         if (attackSignature is false)
         {
-            var faAsync = await UpdateUser2FaAsync(assesExists, CancellationToken.None).ConfigureAwait(false);
+            var faAsync = await UpdateUser2FaAsync(assesExists, CancellationToken.None);
             if (faAsync is not true)
-                return await new ValueTask<OutcomeValue>(new OutcomeValue(
-                    "An unidentified situation has occurred on production, Please contact the system administrator.",
-                    null, null, null, null, null, null,
-                    null, null, null));
+                return await new ValueTask<OutcomeValue>(new OutcomeValue
+                {
+                    Outcome =
+                        "An unidentified situation has occurred on production, Please contact the system administrator."
+                });
 
             var unAuthorisedEvent = new UnAuthorisedEvent
             {
@@ -203,24 +184,27 @@ public class ResetAssesment : ResetAssesmentAbstract
                 Device = assesConcealExists.Device
             };
 
-            await _eventBus.PublishAsync(unAuthorisedEvent, default).ConfigureAwait(false);
+            await _eventBus.PublishAsync(unAuthorisedEvent, default);
 
-            return await new ValueTask<OutcomeValue>(new OutcomeValue(
-                "An unidentified situation has occurred on your account, please verify the link in the e-mail address you received to unlock your account.",
-                null, null, null, null, null, null,
-                null, null, null));
+            return await new ValueTask<OutcomeValue>(new OutcomeValue
+            {
+                Outcome =
+                    "An unidentified situation has occurred on your account, please verify the link in the e-mail address you received to unlock your account."
+            });
         }
 
-        var assesPassword = await ResetAssesPassword(assesConcealExists.Password, assesConcealNewPassword, assesExists)
-            .ConfigureAwait(false);
+        var assesPassword = await ResetAssesPassword(assesConcealExists.Password, assesConcealNewPassword, assesExists);
         if (string.IsNullOrEmpty(assesPassword.Outcome))
-            return await new ValueTask<OutcomeValue>(new OutcomeValue("Condition not resolved.", null, null, null, null,
-                null, null,
-                null, null, null));
+            return await new ValueTask<OutcomeValue>(new OutcomeValue
+            {
+                Outcome = "Condition not resolved."
+            });
 
-        return await new ValueTask<OutcomeValue>(new OutcomeValue(assesPassword.Outcome, null, null, null, null, null,
-            null,
-            null, null, null));
+        return await new ValueTask<OutcomeValue>(new OutcomeValue
+        {
+            Outcome = assesPassword.Outcome,
+            RefreshToken = transferValidation.Description
+        });
     }
 
     protected virtual async ValueTask<OutcomeValue> ResetAssesPassword(string? oldPassword, string newPassword,
@@ -228,15 +212,18 @@ public class ResetAssesment : ResetAssesmentAbstract
     {
         if (string.IsNullOrWhiteSpace(oldPassword) || string.IsNullOrWhiteSpace(newPassword) ||
             string.IsNullOrWhiteSpace(user.UserName) || string.IsNullOrWhiteSpace(user.Password))
-            return new OutcomeValue("Unable to parse credential [ResetAssesment]", null, null, null, null, null, null,
-                null, null, null);
+            return new OutcomeValue
+            {
+                Outcome = "Unable to parse credential [ResetAssesment]"
+            };
 
         var resetPassword = await _userHelper
-            .UpdateUserPasswordAsync(newPassword, oldPassword, user, CancellationToken.None).ConfigureAwait(false);
+            .UpdateUserPasswordAsync(newPassword, oldPassword, user, CancellationToken.None);
         if (resetPassword is not true)
-            return await new ValueTask<OutcomeValue>(new OutcomeValue("Password reset failed.", null, null, null, null,
-                null, null,
-                null, null, null));
+            return await new ValueTask<OutcomeValue>(new OutcomeValue
+            {
+                Outcome = "Password reset failed."
+            });
 
         var loginUpdate = await _userHelper
             .SaveUserLastLoginAsync(
@@ -245,16 +232,18 @@ public class ResetAssesment : ResetAssesmentAbstract
                     UserName = user.UserName,
                     UserProperty = new BaseUserProperty
                         { TimeZone = user.UserProperty.TimeZone, Require2Fa = user.UserProperty.Require2Fa }
-                }, CancellationToken.None).ConfigureAwait(false);
+                }, CancellationToken.None);
         if (loginUpdate is not true)
-            return await new ValueTask<OutcomeValue>(new OutcomeValue(
-                "An unidentified situation has occurred on assesment, Please contact the system administrator.", null,
-                null, null, null, null, null,
-                null, null, null));
+            return await new ValueTask<OutcomeValue>(new OutcomeValue
+            {
+                Outcome =
+                    "An unidentified situation has occurred on assesment, Please contact the system administrator."
+            });
 
-        return await new ValueTask<OutcomeValue>(new OutcomeValue("Password reset successfully.", null, null, null,
-            null, null, null,
-            null, null, null));
+        return await new ValueTask<OutcomeValue>(new OutcomeValue
+        {
+            Outcome = "Password reset successfully."
+        });
     }
 
     protected virtual async ValueTask<BaseUserEntitiy> ResetAssessConcealment(BaseUserEntitiy user)
@@ -308,8 +297,7 @@ public class ResetAssesment : ResetAssesmentAbstract
             .Set(x => x.UserProperty.Require2Fa, true)
             .Set(x => x.UserProperty.IsEmailConfirmed, false);
 
-        var result = await _userHelper.UpdateUserAsync(filter2Fa, update2Fa, null!, CancellationToken.None)
-            .ConfigureAwait(false);
+        var result = await _userHelper.UpdateUserAsync(filter2Fa, update2Fa, null!, CancellationToken.None);
         return result;
     }
 

@@ -8,7 +8,7 @@ public sealed class InsertAssesmentServiceInstaller : IServiceInstaller
 {
     public void Install(IServiceCollection services, IConfiguration configuration)
     {
-        services.AddTransient<InsertAssesment>();
-        services.AddTransient<IInsertAssesment, InsertAssesment>();
+        services.AddScoped<InsertAssesment>();
+        services.AddScoped<IInsertAssesment, InsertAssesment>();
     }
 }

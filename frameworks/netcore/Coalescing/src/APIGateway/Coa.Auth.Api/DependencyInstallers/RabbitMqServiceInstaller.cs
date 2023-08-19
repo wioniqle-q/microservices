@@ -46,10 +46,10 @@ public static class RabbitMqServiceInstaller
             });
         });
 
-        services.AddSingleton<IBus>(provider => provider.GetRequiredService<IBusControl>());
-        services.AddSingleton<IPublishEndpoint>(provider => provider.GetRequiredService<IBusControl>());
-        services.AddSingleton<ISendEndpointProvider>(provider => provider.GetRequiredService<IBusControl>());
+        services.AddScoped<IBus>(provider => provider.GetRequiredService<IBusControl>());
+        services.AddScoped<IPublishEndpoint>(provider => provider.GetRequiredService<IBusControl>());
+        services.AddScoped<ISendEndpointProvider>(provider => provider.GetRequiredService<IBusControl>());
 
-        services.AddSingleton<IEventBus, RabbitMqEventBus>();
+        services.AddScoped<IEventBus, RabbitMqEventBus>();
     }
 }

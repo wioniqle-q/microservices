@@ -9,7 +9,10 @@ public interface IUserOperation
 
     Task<BaseUserEntitiy> FindUserByQueryAsync(FilterDefinition<BaseUserEntitiy> query,
         CancellationToken cancellationToken = default);
-
+    
+    Task<List<BaseUserEntitiy>?> FindUsersByQueryWithPageAsync(int skip, int limit,
+        CancellationToken cancellationToken = default);
+    
     Task<bool> CreateUserAsync(BaseUserEntitiy user, CancellationToken cancellationToken = default);
 
     Task<bool> CreateManyUserAsync(IEnumerable<BaseUserEntitiy> users,

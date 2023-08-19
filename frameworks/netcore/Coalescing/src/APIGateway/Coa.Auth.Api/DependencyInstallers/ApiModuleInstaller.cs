@@ -1,4 +1,6 @@
+using System.IO.Compression;
 using Coa.Auth.Api.DependencyInjections;
+using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 
 namespace Coa.Auth.Api.DependencyInstallers;
@@ -14,13 +16,16 @@ public sealed class ApiModuleInstaller : IServiceInstaller
         });
 
         services.Configure<KestrelServerOptions>(options => { options.AddServerHeader = false; });
+        services.Configure<BrotliCompressionProviderOptions>(options => { options.Level = CompressionLevel.Optimal; });
 
-        services.AddTransient<ILoggerFactory, LoggerFactory>();
+        services.AddResponseCompression(options => { options.EnableForHttps = false; });
+
+        services.AddScoped<ILoggerFactory, LoggerFactory>();
         services.AddLogging();
 
         services.AddEndpointsApiExplorer();
         services.AddHttpContextAccessor();
         services.AddMemoryCache();
-        services.AddControllers();
+        services.AddControllers().AddNewtonsoftJson();
     }
 }

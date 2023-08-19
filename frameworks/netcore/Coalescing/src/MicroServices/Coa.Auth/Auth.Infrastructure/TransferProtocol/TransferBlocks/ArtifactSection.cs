@@ -62,14 +62,13 @@ public sealed class ArtifactSection : ArtifactSectionAbstract
         if (oldObject.Device.DeviceId != newObject.DeviceId)
             return false;
 
-        var compareDevices = await CompareDevices(oldObject.Device, newObject, cancellationToken)
-            .ConfigureAwait(false);
+        var compareDevices = await CompareDevices(oldObject.Device, newObject, cancellationToken);
         if (compareDevices is not false) return true;
 
         var changedProperties =
-            await GetChangedProperties(oldObject.Device, newObject, cancellationToken).ConfigureAwait(false);
+            await GetChangedProperties(oldObject.Device, newObject, cancellationToken);
         var requiresConfirmation =
-            await RequiresUserConfirmation(changedProperties, cancellationToken).ConfigureAwait(false);
+            await RequiresUserConfirmation(changedProperties, cancellationToken);
 
         return requiresConfirmation;
     }

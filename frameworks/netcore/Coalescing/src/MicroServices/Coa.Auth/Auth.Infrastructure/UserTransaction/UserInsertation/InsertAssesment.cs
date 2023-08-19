@@ -51,11 +51,12 @@ public class InsertAssesment : InsertAssesmentAbstract
     public override async Task<OutcomeValue> InsertAssesmentAsync(BaseUserEntitiy user,
         CancellationToken cancellationToken = default)
     {
-        var assesParams = await AssesInsert(user, cancellationToken).ConfigureAwait(false);
+        var assesParams = await AssesInsert(user, cancellationToken);
         if (assesParams.Outcome is null)
-            return await new ValueTask<OutcomeValue>(new OutcomeValue("Unable to parse credential", null, null, null,
-                null, null, null,
-                null, null, null));
+            return await new ValueTask<OutcomeValue>(new OutcomeValue
+            {
+                Outcome = "Unable to parse credential"
+            });
 
         return await new ValueTask<OutcomeValue>(assesParams);
     }
@@ -63,7 +64,7 @@ public class InsertAssesment : InsertAssesmentAbstract
     protected virtual async Task<OutcomeValue> AssesInsert(BaseUserEntitiy user,
         CancellationToken cancellationToken = default)
     {
-        var assesConcealExists = await AssessConcealment(user).ConfigureAwait(false);
+        var assesConcealExists = await AssessConcealment(user);
         if (string.IsNullOrWhiteSpace(assesConcealExists.UserName) ||
             string.IsNullOrWhiteSpace(assesConcealExists.FirstName) ||
             string.IsNullOrWhiteSpace(assesConcealExists.MiddleName) ||
@@ -71,30 +72,32 @@ public class InsertAssesment : InsertAssesmentAbstract
             string.IsNullOrWhiteSpace(assesConcealExists.Email) ||
             string.IsNullOrWhiteSpace(assesConcealExists.Password))
             return await new ValueTask<OutcomeValue>(
-                new OutcomeValue("Credential cannot be parsed, concealment failed", null, null, null, null, null, null,
-                    null, null, null));
+                new OutcomeValue
+                {
+                    Outcome = "Credential cannot be parsed, concealment failed"
+                });
 
-        var assesUserExists = await AssessUserExists(assesConcealExists).ConfigureAwait(false);
+        var assesUserExists = await AssessUserExists(assesConcealExists);
         if (assesUserExists is not false)
-            return await new ValueTask<OutcomeValue>(new OutcomeValue("Existing user", null, null, null, null, null,
-                null,
-                null, null, null));
+            return await new ValueTask<OutcomeValue>(new OutcomeValue
+            {
+                Outcome = "Existing user"
+            });
 
-        var userId = await _guid.GenerateGuidAsync().ConfigureAwait(false);
+        var userId = await _guid.GenerateGuidAsync();
         var currentTime = DateTime.UtcNow;
         var endpointTime = currentTime.AddMinutes(10);
-        var randomTransactionString = await GenerateRandomHexString().ConfigureAwait(false);
-        var randomDeviceId = await GenerateRandomHexString(6).ConfigureAwait(false);
+        var randomTransactionString = await GenerateRandomHexString();
+        var randomDeviceId = await GenerateRandomHexString(6);
 
-        var keyPair = await _adleman.CreateKeyPairAsync(2048).ConfigureAwait(false);
-        var encryptRsa = await _adleman.EncryptAsync(assesConcealExists.LastName, keyPair.publicKey)
-            .ConfigureAwait(false);
+        var keyPair = await _adleman.CreateKeyPairAsync(2048);
+        var encryptRsa = await _adleman.EncryptAsync(assesConcealExists.LastName, keyPair.publicKey);
 
         var userRsa = new BaseUserRsa
         {
-            RsaPublicKey = await _concealment.ConcealAsync(keyPair.publicKey, null, null).ConfigureAwait(false),
-            RsaPrivateKey = await _concealment.ConcealAsync(keyPair.privateKey, null, null).ConfigureAwait(false),
-            RsaValidateKey = await _concealment.ConcealAsync(encryptRsa, null, null).ConfigureAwait(false)
+            RsaPublicKey = await _concealment.ConcealAsync(keyPair.publicKey, null, null),
+            RsaPrivateKey = await _concealment.ConcealAsync(keyPair.privateKey, null, null),
+            RsaValidateKey = await _concealment.ConcealAsync(encryptRsa, null, null)
         };
 
         var userDevice = new BaseDevice
@@ -139,8 +142,7 @@ public class InsertAssesment : InsertAssesmentAbstract
         });
 
         var refreshToken = await _userSignature
-            .GenerateUserRefreshToken(string.Concat(userId), currentTime.AddMinutes(10), userSignatureInfo)
-            .ConfigureAwait(false);
+                .GenerateUserRefreshToken(string.Concat(userId), currentTime.AddMinutes(10), userSignatureInfo);
         // access'll add
 
         var endpointToken = await _endpointCredentials
@@ -178,8 +180,7 @@ public class InsertAssesment : InsertAssesmentAbstract
             UserRsa = userRsa
         };
 
-        var insertedUser = await _userHelper.CreateUserAsync(userEntity, userSignatureInfo, cancellationToken)
-            .ConfigureAwait(false);
+        var insertedUser = await _userHelper.CreateUserAsync(userEntity, userSignatureInfo, cancellationToken);
 
         var assessUser = new InsertedEvent
         {
@@ -191,11 +192,12 @@ public class InsertAssesment : InsertAssesmentAbstract
             UserProperty = userProperties
         };
 
-        await _eventBus.PublishAsync(assessUser, cancellationToken).ConfigureAwait(false);
+        await _eventBus.PublishAsync(assessUser, cancellationToken);
 
         return await new ValueTask<OutcomeValue>(new OutcomeValue
         {
             UniqueResId = string.Concat(userId),
+            DeviceId = randomDeviceId,
             ClientAccessToken = endpointToken.Token,
             RsaPublicKey = insertedUser.RsaPublicKey,
             RefreshToken = insertedUser.RefreshToken,
@@ -209,6 +211,8 @@ public class InsertAssesment : InsertAssesmentAbstract
             string.IsNullOrWhiteSpace(user.MiddleName) || string.IsNullOrWhiteSpace(user.LastName) ||
             string.IsNullOrWhiteSpace(user.Email) || string.IsNullOrWhiteSpace(user.Password))
             return await new ValueTask<BaseUserEntitiy>(new BaseUserEntitiy());
+
+        Console.WriteLine("AssessConcealment" + user.UserName);
 
         return new BaseUserEntitiy
         {
@@ -248,7 +252,7 @@ public class InsertAssesment : InsertAssesmentAbstract
 
         var filter = Builders<BaseUserEntitiy>.Filter.Eq(x => x.UserName, user.UserName);
 
-        var userExists = await _userHelper.FindUserByQueryAsync(filter).ConfigureAwait(false);
+        var userExists = await _userHelper.FindUserByQueryAsync(filter);
         if (userExists is null)
             return await new ValueTask<bool>(false);
 

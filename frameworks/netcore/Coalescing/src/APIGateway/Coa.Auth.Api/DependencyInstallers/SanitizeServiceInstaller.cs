@@ -9,8 +9,8 @@ public sealed class SanitizeServiceInstaller : IServiceInstaller
 {
     public void Install(IServiceCollection services, IConfiguration configuration)
     {
-        services.AddTransient<BaseSanitize>();
-        services.AddTransient<ISanitize, BaseSanitize>();
-        services.AddTransient<SanitizeAbstract, BaseSanitize>();
+        services.AddScoped<BaseSanitize>();
+        services.AddScoped<ISanitize, BaseSanitize>();
+        services.AddScoped<SanitizeAbstract, BaseSanitize>();
     }
 }

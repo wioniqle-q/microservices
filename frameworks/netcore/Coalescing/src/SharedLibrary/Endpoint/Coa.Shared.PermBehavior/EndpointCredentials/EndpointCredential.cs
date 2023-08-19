@@ -71,7 +71,7 @@ public sealed class EndpointCredential : EndpointCredentialAbstract
                 ExceptionMessage = "(EC-GET): ClaimsIdentity is null."
             };
 
-        var result = await GenerateEndpointToken(expirationDate, claimsIdentity).ConfigureAwait(false);
+        var result = await GenerateEndpointToken(expirationDate, claimsIdentity);
         if (result.UniqueStatusCode is 1)
             return result;
 
@@ -95,7 +95,7 @@ public sealed class EndpointCredential : EndpointCredentialAbstract
             };
 
         var tokenHandler = new JwtSecurityTokenHandler();
-        var validationParameters = await GetValidationParameters().ConfigureAwait(false);
+        var validationParameters = await GetValidationParameters();
 
         try
         {
@@ -139,7 +139,7 @@ public sealed class EndpointCredential : EndpointCredentialAbstract
             };
 
         var tokenHandler = new JwtSecurityTokenHandler();
-        var validationParameters = await GetValidationParameters().ConfigureAwait(false);
+        var validationParameters = await GetValidationParameters();
 
         try
         {
@@ -219,7 +219,7 @@ public sealed class EndpointCredential : EndpointCredentialAbstract
             };
 
         var tokenHandler = new JwtSecurityTokenHandler();
-        var validationParameters = await GetValidationParameters().ConfigureAwait(false);
+        var validationParameters = await GetValidationParameters();
 
         try
         {
@@ -295,7 +295,7 @@ public sealed class EndpointCredential : EndpointCredentialAbstract
             };
 
         var tokenHandler = new JwtSecurityTokenHandler();
-        var validationParameters = await GetValidationParameters().ConfigureAwait(false);
+        var validationParameters = await GetValidationParameters();
 
         try
         {

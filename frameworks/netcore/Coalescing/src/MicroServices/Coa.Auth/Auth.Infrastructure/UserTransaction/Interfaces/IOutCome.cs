@@ -9,6 +9,7 @@ public interface IOutCome
     string? AccessToken { get; set; }
     string? RefreshToken { get; set; }
     string? ClientAccessToken { get; set; }
+    string? DeviceId { get; set; }
     string? ExceptionId { get; set; }
     string? ExceptionType { get; set; }
 }

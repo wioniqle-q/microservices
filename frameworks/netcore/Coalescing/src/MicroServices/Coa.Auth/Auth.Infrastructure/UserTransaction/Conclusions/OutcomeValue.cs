@@ -4,8 +4,17 @@ namespace Auth.Infrastructure.UserTransaction.Conclusions;
 
 public sealed class OutcomeValue : OutcomeValueAbstract
 {
-    public OutcomeValue(string outcome, string? uniqueResId, string? description, string? subTopic,
-        string? rsaPublicKey, string? accessToken, string? refreshToken, string? clientAccessToken, string? exceptionId,
+    public OutcomeValue(
+        string? outcome,
+        string? uniqueResId,
+        string? description,
+        string? subTopic,
+        string? rsaPublicKey,
+        string? accessToken,
+        string? refreshToken,
+        string? clientAccessToken,
+        string? deviceId,
+        string? exceptionId,
         string? exceptionType)
     {
         Outcome = outcome;
@@ -16,6 +25,7 @@ public sealed class OutcomeValue : OutcomeValueAbstract
         AccessToken = accessToken;
         RefreshToken = refreshToken;
         ClientAccessToken = clientAccessToken;
+        DeviceId = deviceId;
         ExceptionId = exceptionId;
         ExceptionType = exceptionType;
     }
@@ -32,6 +42,7 @@ public sealed class OutcomeValue : OutcomeValueAbstract
     public override string? AccessToken { get; set; }
     public override string? RefreshToken { get; set; }
     public override string? ClientAccessToken { get; set; }
+    public override string? DeviceId { get; set; }
     public override string? ExceptionId { get; set; }
     public override string? ExceptionType { get; set; }
 }

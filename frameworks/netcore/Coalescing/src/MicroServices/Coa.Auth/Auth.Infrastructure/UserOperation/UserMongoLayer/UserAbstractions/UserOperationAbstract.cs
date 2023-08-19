@@ -1,6 +1,7 @@
 ﻿using Auth.Domain.Entities.MongoEntities;
 using Auth.Infrastructure.Data.MongoDB.ContextBase;
 using Auth.Infrastructure.UserOperation.UserMongoLayer.UserInterfaces;
+using Microsoft.Extensions.Caching.Memory;
 using MongoDB.Driver;
 
 namespace Auth.Infrastructure.UserOperation.UserMongoLayer.UserAbstractions;
@@ -8,10 +9,12 @@ namespace Auth.Infrastructure.UserOperation.UserMongoLayer.UserAbstractions;
 public abstract class UserOperationAbstract : IUserOperation
 {
     private readonly UserMongoContext _context;
-
-    protected UserOperationAbstract(UserMongoContext context)
+    private readonly IMemoryCache _cache;
+    
+    protected UserOperationAbstract(UserMongoContext context, IMemoryCache cache)
     {
         _context = context;
+        _cache = cache;
     }
 
     public virtual async Task<BaseUserEntitiy?> GetUserByIdAsync(Guid userId,
@@ -41,17 +44,77 @@ public abstract class UserOperationAbstract : IUserOperation
         using var cursor = await collection.FindAsync(query, options, cancellationToken);
         return (await cursor.FirstOrDefaultAsync(cancellationToken) ?? null)!;
     }
+    
+    public async Task<List<BaseUserEntitiy>?> FindUsersByQueryWithPageAsync(int skip, int limit,
+        CancellationToken cancellationToken = default)
+    {
+        if (_cache.TryGetValue($"Users_{skip}_{limit}", out List<BaseUserEntitiy>? cachedUsers))
+        {
+            return cachedUsers;
+        }
+
+        var collection = _context.GetCollection<BaseUserEntitiy>(_context.DatabaseName);
+
+        var filter = Builders<BaseUserEntitiy>.Filter.Empty; 
+
+        var options = new FindOptions<BaseUserEntitiy>
+        {
+            AllowPartialResults = false,
+            Projection = Builders<BaseUserEntitiy>.Projection
+                .Exclude("_id")
+                .Exclude(x => x.Password)
+                .Exclude(x => x.UserProperty)
+                .Exclude(x => x.Device)
+                .Exclude(x => x.LastName)
+                .Exclude(x => x.MiddleName)
+                .Exclude(x => x.UserRsa)
+                .Exclude(x => x.FirstName),
+            Limit = limit,
+            Skip = skip
+        };
+        
+        var result = new List<BaseUserEntitiy>();
+        var fetchedCount = 0;
+
+        using var cursor = await collection.FindAsync(filter, options, cancellationToken);
+
+        var semaphore = new SemaphoreSlim(Environment.ProcessorCount);
+
+        await cursor.ForEachAsync(async userEntity =>
+        {
+            await semaphore.WaitAsync(cancellationToken);
+            try
+            {
+                if (fetchedCount >= skip && result.Count < limit)
+                {
+                    result.Add(userEntity);
+                }
+                fetchedCount++;
+            }
+            finally
+            {
+                semaphore.Release();
+            }
+        }, cancellationToken);
+
+        if (result.Count >= limit)
+        {
+            result = result.Take(limit).ToList();
+        }
+
+        _cache.Set($"Users_{skip}_{limit}", result, TimeSpan.FromMinutes(10)); 
+
+        return result;
+    }
+
 
     public virtual async Task<bool> CreateUserAsync(BaseUserEntitiy user,
         CancellationToken cancellationToken = default)
     {
         var collection = _context.GetCollection<BaseUserEntitiy>(_context.DatabaseName);
 
-        var session = await StartSessionWithActionAsync(async (s, ct) =>
-        {
-            await collection.InsertOneAsync(s, user, cancellationToken: ct)
-                .ConfigureAwait(false);
-        }, cancellationToken).ConfigureAwait(false);
+        var session = await StartSessionWithActionAsync(
+            async (s, ct) => { await collection.InsertOneAsync(s, user, cancellationToken: ct); }, cancellationToken);
 
         return session;
     }
@@ -61,11 +124,8 @@ public abstract class UserOperationAbstract : IUserOperation
     {
         var collection = _context.GetCollection<BaseUserEntitiy>(_context.DatabaseName);
 
-        var session = await StartSessionWithActionAsync(async (s, ct) =>
-        {
-            await collection.InsertManyAsync(s, users, cancellationToken: ct)
-                .ConfigureAwait(false);
-        }, cancellationToken).ConfigureAwait(false);
+        var session = await StartSessionWithActionAsync(
+            async (s, ct) => { await collection.InsertManyAsync(s, users, cancellationToken: ct); }, cancellationToken);
 
         return session;
     }
@@ -78,8 +138,8 @@ public abstract class UserOperationAbstract : IUserOperation
         var session = await StartSessionWithActionAsync(async (s, ct) =>
         {
             await collection.UpdateOneAsync(s, filter, update, cancellationToken: ct)
-                .ConfigureAwait(false);
-        }, cancellationToken).ConfigureAwait(false);
+                ;
+        }, cancellationToken);
 
         return session;
     }
@@ -92,13 +152,13 @@ public abstract class UserOperationAbstract : IUserOperation
 
         try
         {
-            await action(session, cancellationToken).ConfigureAwait(false);
-            await session.CommitTransactionAsync(cancellationToken).ConfigureAwait(false);
+            await action(session, cancellationToken);
+            await session.CommitTransactionAsync(cancellationToken);
             return true;
         }
         catch (Exception)
         {
-            await session.AbortTransactionAsync(cancellationToken).ConfigureAwait(false);
+            await session.AbortTransactionAsync(cancellationToken);
             return false;
         }
         finally

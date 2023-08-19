@@ -8,6 +8,7 @@ var assemblies = new[]
 {
     typeof(ConcealmentProtocolServiceInstaller).Assembly,
     typeof(CredentialAssesmentServiceInstaller).Assembly,
+    typeof(TransferAssesmentServiceInstaller).Assembly,
     typeof(DigitalSignatureServiceInstaller).Assembly,
     typeof(ResetPwAssesmentServiceInstaller).Assembly,
     typeof(InsertAssesmentServiceInstaller).Assembly,
@@ -26,11 +27,13 @@ var assemblies = new[]
     typeof(ApiModuleInstaller).Assembly
 };
 
+
 builder.Services.InstallServices(builder.Configuration, assemblies);
 builder.Services.InstallMessageBroker(builder.Configuration);
 
 var app = builder.Build();
 
+app.UseResponseCompression();
 app.UseHttpsRedirection();
 app.UseHeaderProtocol();
 app.UseAuthentication();

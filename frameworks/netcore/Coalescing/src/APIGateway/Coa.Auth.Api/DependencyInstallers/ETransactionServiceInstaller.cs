@@ -18,8 +18,8 @@ public sealed class ETransactionServiceInstaller : IServiceInstaller
         );
         services.AddSingleton(eBaseOptions);
 
-        services.AddTransient<EBaseTransaction>();
-        services.AddTransient<IETransaction, EBaseTransaction>();
-        services.AddTransient<EmailTransactionAbstract, EBaseTransaction>();
+        services.AddScoped<EBaseTransaction>();
+        services.AddScoped<IETransaction, EBaseTransaction>();
+        services.AddScoped<EmailTransactionAbstract, EBaseTransaction>();
     }
 }

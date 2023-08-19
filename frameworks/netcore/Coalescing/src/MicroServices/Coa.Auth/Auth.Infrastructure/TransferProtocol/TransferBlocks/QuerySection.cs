@@ -30,13 +30,12 @@ public sealed class QuerySection : QuerySectionAbstract
             .Set(x => x.UserProperty.RefreshToken, string.Empty)
             .AddToSet(x => x.UserProperty.RefreshTokens, token);
 
-        var updateUserAsync = await _userHelper.UpdateUserAsync(filter, update, null!, CancellationToken.None)
-            .ConfigureAwait(false);
+        var updateUserAsync = await _userHelper.UpdateUserAsync(filter, update, null!, CancellationToken.None);
         if (updateUserAsync is false)
             return false;
 
         var checkRefreshTokens =
-            await CheckRefreshTokensCount(baseUserEntitiy, CancellationToken.None).ConfigureAwait(false);
+            await CheckRefreshTokensCount(baseUserEntitiy, CancellationToken.None);
         return checkRefreshTokens;
     }
 
@@ -48,7 +47,7 @@ public sealed class QuerySection : QuerySectionAbstract
             .Set(x => x.UserProperty.RefreshToken, token);
 
         var updateUserAsync = await _userHelper.UpdateUserAsync(filter, update, null!, CancellationToken.None)
-            .ConfigureAwait(false);
+            ;
         return updateUserAsync;
     }
 
@@ -63,7 +62,7 @@ public sealed class QuerySection : QuerySectionAbstract
             .PopFirst(x => x.UserProperty.RefreshTokens);
 
         var popUpdate = await _userHelper.UpdateUserAsync(filter, update, null!, CancellationToken.None)
-            .ConfigureAwait(false);
+            ;
         return popUpdate;
     }
 }

@@ -8,11 +8,11 @@ public sealed class EndpointValidate : EndpointValidateAbstract
 {
     public override async Task<ValueConclusion> ValidateAccessBehavior(HttpRequestMessage httpContent)
     {
-        var authorizationHeaderValidationResult = await ValidateAuthorizationHeader(httpContent).ConfigureAwait(false);
+        var authorizationHeaderValidationResult = await ValidateAuthorizationHeader(httpContent);
         if (authorizationHeaderValidationResult.UniqueStatusCode is 2)
             return authorizationHeaderValidationResult;
 
-        var accessTokenValidationResult = await ValidateAccessToken(httpContent).ConfigureAwait(false);
+        var accessTokenValidationResult = await ValidateAccessToken(httpContent);
         return accessTokenValidationResult.UniqueStatusCode is 2
             ? accessTokenValidationResult
             : await Task.FromResult(new ValueConclusion

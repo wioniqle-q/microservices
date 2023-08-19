@@ -36,22 +36,21 @@ public sealed class EndpointAccessor : EndpointAccessorAbstract
             };
 
         var tokenLifeTime =
-            await _endpointCredential.ValidateEndpointTokenLifeTime(endpointToken).ConfigureAwait(false);
+            await _endpointCredential.ValidateEndpointTokenLifeTime(endpointToken);
         if (tokenLifeTime.UniqueStatusCode is 1)
             return tokenLifeTime;
 
-        var tokenReplayAttack = await _endpointCredential.VerifyEndpointReplayToken(endpointToken, DateTime.UtcNow)
-            .ConfigureAwait(false);
+        var tokenReplayAttack = await _endpointCredential.VerifyEndpointReplayToken(endpointToken, DateTime.UtcNow);
         if (tokenReplayAttack.UniqueStatusCode is 1)
             return tokenReplayAttack;
 
         var tokenIdEqual = await _endpointCredential.VerifyEndpointIdEqualAsync(endpointToken,
-            claimsIdentity.Claims.FirstOrDefault(x => x.Type == "EndpointId")?.Value).ConfigureAwait(false);
+            claimsIdentity.Claims.FirstOrDefault(x => x.Type == "EndpointId")?.Value);
         if (tokenIdEqual.UniqueStatusCode is 1)
             return tokenIdEqual;
 
         var verifyAccessToken = await _endpointCredential.VerifyEndpointAccessBehavior(endpointToken, claimsIdentity)
-            .ConfigureAwait(false);
+            ;
         return verifyAccessToken;
     }
 }

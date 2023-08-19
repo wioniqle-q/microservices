@@ -12,6 +12,7 @@ public abstract class OutcomeValueAbstract : IOutCome
     public virtual string? AccessToken { get; set; }
     public virtual string? RefreshToken { get; set; }
     public virtual string? ClientAccessToken { get; set; }
+    public virtual string? DeviceId { get; set; }
     public virtual string? ExceptionId { get; set; }
     public virtual string? ExceptionType { get; set; }
 }

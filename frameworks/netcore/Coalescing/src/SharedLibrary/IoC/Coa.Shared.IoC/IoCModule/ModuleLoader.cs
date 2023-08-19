@@ -20,7 +20,7 @@ public class ModuleLoader : ModuleLoaderFactoryAbstract
     public override async Task<IEnumerable<IComponentModule>> LoadModulesAsync(IEnumerable<Assembly> startupModuleType,
         ComponentConfigurationContext context)
     {
-        var modules = await ComponentModulesLoad(startupModuleType).ConfigureAwait(false);
+        var modules = await ComponentModulesLoad(startupModuleType);
         return modules;
     }
 }

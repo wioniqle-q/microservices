@@ -1,4 +1,5 @@
-﻿using Auth.Domain.Entities.MongoEntities;
+﻿using System.Linq.Expressions;
+using Auth.Domain.Entities.MongoEntities;
 using Auth.Domain.Entities.SignatureEntities;
 using Auth.Infrastructure.UserOperation.UserMongoLayer.UserMethods;
 using MongoDB.Driver;
@@ -11,7 +12,8 @@ public interface IUserHelper
 
     Task<BaseUserEntitiy?> FindUserByQueryAsync(FilterDefinition<BaseUserEntitiy> query,
         CancellationToken cancellationToken = default);
-
+    Task<List<BaseUserEntitiy>> FindUsersByQueryWithPageAsync(int skip, int limit, CancellationToken cancellationToken = default);
+    
     Task<bool> ValidateUserLastLoginAsync(BaseUserEntitiy user, DateTime currentLoginTime,
         CancellationToken cancellationToken = default);
 

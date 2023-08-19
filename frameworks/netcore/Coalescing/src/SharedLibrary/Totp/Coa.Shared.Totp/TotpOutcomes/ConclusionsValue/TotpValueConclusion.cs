@@ -14,4 +14,4 @@ public sealed class TotpValueConclusion : TotpConclusionAbstract
     public override int? UniqueStatusCode { get; set; }
     public override int? TotpCode { get; set; }
     public override string? Description { get; set; }
-}    
+}

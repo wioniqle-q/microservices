@@ -25,29 +25,29 @@ public sealed class RateLimiterServiceInstaller : IServiceInstaller
                 if (httpContext.Request.Headers.ContainsKey("X-Forwarded-For"))
                     return RateLimitPartition.GetTokenBucketLimiter(ipAddress, _ => new TokenBucketRateLimiterOptions
                     {
-                        TokenLimit = 15,
+                        TokenLimit = 20,
                         ReplenishmentPeriod = TimeSpan.FromMinutes(10),
-                        TokensPerPeriod = 25,
+                        TokensPerPeriod = 100,
                         QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
-                        QueueLimit = 5
+                        QueueLimit = 30
                     });
 
                 if (httpContext.Request.Headers.ContainsKey("CF-Connecting-IP"))
                     return RateLimitPartition.GetTokenBucketLimiter(ipAddress, _ => new TokenBucketRateLimiterOptions
                     {
-                        TokenLimit = 15,
+                        TokenLimit = 20,
                         ReplenishmentPeriod = TimeSpan.FromMinutes(10),
-                        TokensPerPeriod = 25,
+                        TokensPerPeriod = 100,
                         QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
-                        QueueLimit = 5
+                        QueueLimit = 30
                     });
 
                 return RateLimitPartition.GetSlidingWindowLimiter(ipAddress, _ => new SlidingWindowRateLimiterOptions
                 {
                     AutoReplenishment = true,
-                    PermitLimit = 15,
-                    QueueLimit = 5,
-                    SegmentsPerWindow = 5,
+                    PermitLimit = 40,
+                    QueueLimit = 100,
+                    SegmentsPerWindow = 50,
                     Window = TimeSpan.FromSeconds(60),
                     QueueProcessingOrder = QueueProcessingOrder.OldestFirst
                 });

@@ -4,6 +4,8 @@ using Auth.Application.InsertManager.Handlers;
 using Auth.Application.InsertManager.Requests;
 using Auth.Application.ResetPwManager.Handlers;
 using Auth.Application.ResetPwManager.Requests;
+using Auth.Application.TransferManager.Handlers;
+using Auth.Application.TransferManager.Requests;
 using Auth.Infrastructure.UserTransaction.Conclusions;
 using Coa.Auth.Api.DependencyInjections;
 using FluentValidation;
@@ -16,24 +18,26 @@ public sealed class AuthManagerServiceInstaller : IServiceInstaller
 {
     public void Install(IServiceCollection services, IConfiguration configuration)
     {
-        services.AddTransient<IRequestHandler<AuthUserRequest, OutcomeValue>, AuthUserHandler>();
-        services.AddTransient<IRequestPreProcessor<AuthUserRequest>, AuthUserPreProcessor>();
-        services.AddTransient<IValidator<AuthUserRequest>, AuthUserByIdValidator>();
+        services.AddScoped<IRequestHandler<AuthUserRequest, OutcomeValue>, AuthUserHandler>();
+        services.AddScoped<IRequestPreProcessor<AuthUserRequest>, AuthUserPreProcessor>();
+        services.AddScoped<IValidator<AuthUserRequest>, AuthUserByIdValidator>();
 
-        services.AddTransient<IRequestHandler<InsertUserRequest, OutcomeValue>, InsertUserHandler>();
-        services.AddTransient<IRequestPreProcessor<InsertUserRequest>, InsertUserPreProcessor>();
-        services.AddTransient<IValidator<InsertUserRequest>, InsertUserByIdValidator>();
+        services.AddScoped<IRequestHandler<InsertUserRequest, OutcomeValue>, InsertUserHandler>();
+        services.AddScoped<IRequestPreProcessor<InsertUserRequest>, InsertUserPreProcessor>();
+        services.AddScoped<IValidator<InsertUserRequest>, InsertUserByIdValidator>();
 
-        services.AddTransient<IRequestHandler<ResetPwUserRequest, OutcomeValue>, ResetPwUserHandler>();
-        services.AddTransient<IRequestPreProcessor<ResetPwUserRequest>, ResetPwUserPreProcessor>();
-        services.AddTransient<IValidator<ResetPwUserRequest>, ResetPwUserByIdValidator>();
+        services.AddScoped<IRequestHandler<ResetPwUserRequest, OutcomeValue>, ResetPwUserHandler>();
+        services.AddScoped<IRequestPreProcessor<ResetPwUserRequest>, ResetPwUserPreProcessor>();
+        services.AddScoped<IValidator<ResetPwUserRequest>, ResetPwUserByIdValidator>();
+
+        services.AddScoped<IRequestHandler<TransferUserRequest, OutcomeValue>, TransferUserHandler>();
+        services.AddScoped<IRequestPreProcessor<TransferUserRequest>, TransferUserPreProcessor>();
+        services.AddScoped<IValidator<TransferUserRequest>, TransferUserByIdValidator>();
 
         services.AddMediatR(x =>
         {
             x.RegisterServicesFromAssemblies(typeof(Program).Assembly);
-            x.AddOpenBehavior(typeof(ResetPwUserPipelineBehavior<,>));
-            x.AddOpenBehavior(typeof(InsertUserPipelineBehavior<,>));
-            x.AddOpenBehavior(typeof(AuthUserPipelineBehavior<,>));
+            x.Lifetime = ServiceLifetime.Transient;
         });
     }
 }

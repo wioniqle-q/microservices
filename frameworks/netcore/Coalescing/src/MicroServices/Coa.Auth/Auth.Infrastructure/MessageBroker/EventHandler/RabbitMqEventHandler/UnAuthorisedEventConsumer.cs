@@ -27,7 +27,7 @@ public sealed class UnAuthorisedEventConsumer : IConsumer<UnAuthorisedEvent>
 
     public async Task Consume(ConsumeContext<UnAuthorisedEvent> context)
     {
-        var emailVerifyId = await GenerateRandomHexString(8).ConfigureAwait(false);
+        var emailVerifyId = await GenerateRandomHexString(8);
         var currentTime = DateTime.UtcNow;
         var updatedTime = currentTime.AddMinutes(20);
 

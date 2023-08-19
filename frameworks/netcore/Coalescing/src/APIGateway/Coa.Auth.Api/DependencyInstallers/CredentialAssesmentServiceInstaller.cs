@@ -9,9 +9,9 @@ public sealed class CredentialAssesmentServiceInstaller : IServiceInstaller
 {
     public void Install(IServiceCollection services, IConfiguration configuration)
     {
-        services.AddTransient<CredentialAssesment>();
-        services.AddTransient<ICredentialAssesment, CredentialAssesment>();
-        services.AddTransient<IOutCome, OutcomeValue>();
-        services.AddTransient<OutcomeValue>();
+        services.AddScoped<CredentialAssesment>();
+        services.AddScoped<ICredentialAssesment, CredentialAssesment>();
+        services.AddScoped<IOutCome, OutcomeValue>();
+        services.AddScoped<OutcomeValue>();
     }
 }

@@ -47,7 +47,7 @@ public sealed class Transfer : TransferAbstract
                 Description = "Incorrect credentials, please fill in all fields"
             };
 
-        var tokenNameIdentifier = await _userSignature.GetTokenNameIdentifier(token).ConfigureAwait(false);
+        var tokenNameIdentifier = await _userSignature.GetTokenNameIdentifier(token);
         if (string.IsNullOrWhiteSpace(tokenNameIdentifier))
             return new TransferOutcomeValue
             {
@@ -63,7 +63,7 @@ public sealed class Transfer : TransferAbstract
                 Description = "User ID is blank"
             };
 
-        var user = await _userHelper.GetUserByIdAsync(userId, CancellationToken.None).ConfigureAwait(false);
+        var user = await _userHelper.GetUserByIdAsync(userId, CancellationToken.None);
         if (user is null)
             return new TransferOutcomeValue
             {
@@ -71,11 +71,13 @@ public sealed class Transfer : TransferAbstract
                 Description = "User not found"
             };
 
-        var tokenLifeTime = await _userSignature.ValidateUserTokenLifeTime(token).ConfigureAwait(false);
+        var tokenLifeTime = await _userSignature.ValidateUserTokenLifeTime(token);
         if (tokenLifeTime is false)
         {
+            Console.WriteLine("TransferAssesment tokenLifeTime failed");
+
             var validatedInformation = await ValidateAllInformation(token, user, baseDevice, CancellationToken.None)
-                .ConfigureAwait(false);
+                ;
             return new TransferOutcomeValue
             {
                 Status = validatedInformation.Status,
@@ -84,7 +86,7 @@ public sealed class Transfer : TransferAbstract
         }
 
         var validateAll = await ValidateAllInformation(token, user, baseDevice, CancellationToken.None)
-            .ConfigureAwait(false);
+            ;
         return new TransferOutcomeValue
         {
             Status = validateAll.Status,
@@ -111,14 +113,23 @@ public sealed class Transfer : TransferAbstract
                 Description = "First flag is null or empty"
             };
 
+        var secondFlag = _catConfiguration.Flags.Skip(1).FirstOrDefault();
+        if (string.IsNullOrWhiteSpace(secondFlag))
+            return new TransferOutcomeValue
+            {
+                Status = false,
+                Description = "Second flag is null or empty"
+            };
+
         var client = ConfigCatClient.Get(_catConfiguration.SdkKey);
-        var isCompareDevices = await client.GetValueAsync(firstFlag, false, cancellationToken: cancellationToken)
-            .ConfigureAwait(false);
+        var isCompareDevices = await client.GetValueAsync(firstFlag, false, cancellationToken: cancellationToken);
+        var isReuseFlag = await client.GetValueAsync(secondFlag, false, cancellationToken: cancellationToken);
+
         client.Dispose();
 
         var compareDevices = await _artifactSection
-            .CheckDeviceInfo<bool>(baseUserEntitiy, baseDevice, CancellationToken.None)
-            .ConfigureAwait(false);
+                .CheckDeviceInfo<bool>(baseUserEntitiy, baseDevice, CancellationToken.None)
+            ;
         if (compareDevices is false && isCompareDevices)
             return new TransferOutcomeValue
             {
@@ -127,8 +138,8 @@ public sealed class Transfer : TransferAbstract
             };
 
         var reuseToken = await _querySection.CheckReuseToken(baseUserEntitiy, token, CancellationToken.None)
-            .ConfigureAwait(false);
-        if (reuseToken is true)
+            ;
+        if (reuseToken is true && isReuseFlag)
             return new TransferOutcomeValue
             {
                 Status = false,
@@ -136,8 +147,8 @@ public sealed class Transfer : TransferAbstract
             };
 
         var removedRefreshToken = await _querySection
-            .RemoveUserRefreshTokenAsync(baseUserEntitiy, token, CancellationToken.None)
-            .ConfigureAwait(false);
+                .RemoveUserRefreshTokenAsync(baseUserEntitiy, token, CancellationToken.None)
+            ;
         if (removedRefreshToken is false)
             return new TransferOutcomeValue
             {
@@ -146,7 +157,7 @@ public sealed class Transfer : TransferAbstract
             };
 
         var randomTransactionString = await _artifactSection.GenerateRandomHexString(36, CancellationToken.None)
-            .ConfigureAwait(false);
+            ;
         var currentTime = DateTime.UtcNow;
         var updatedTime = currentTime.AddMinutes(10);
 
@@ -164,7 +175,7 @@ public sealed class Transfer : TransferAbstract
 
         var newRefreshToken = await _userSignature
             .GenerateUserRefreshToken(string.Concat(baseUserEntitiy.UserId), userSignatureInfo.TrialDate,
-                userSignatureInfo).ConfigureAwait(false);
+                userSignatureInfo);
         if (string.IsNullOrWhiteSpace(newRefreshToken))
             return new TransferOutcomeValue
             {
@@ -173,8 +184,8 @@ public sealed class Transfer : TransferAbstract
             };
 
         var addRefreshToken = await _querySection
-            .AddUserRefreshTokenAsync(baseUserEntitiy, newRefreshToken, CancellationToken.None)
-            .ConfigureAwait(false);
+                .AddUserRefreshTokenAsync(baseUserEntitiy, newRefreshToken, CancellationToken.None)
+            ;
         if (addRefreshToken is false)
             return new TransferOutcomeValue
             {

@@ -27,8 +27,8 @@ public sealed class MongoDbServiceInstaller : IServiceInstaller
             BuildContextGeneric<UserMongoContext, UserContextOptions>.Instance(userContextOptions);
         services.AddSingleton<IBuildContext>(buildContext);
 
-        services.AddTransient<UserMongoContext>();
-        services.AddTransient<IContext, UserMongoContext>();
+        services.AddScoped<UserMongoContext>();
+        services.AddScoped<IContext, UserMongoContext>();
         services
             .AddTransient<IBuildContext,
                 BuildContextGeneric<UserMongoContext, UserContextOptions>>();
@@ -41,7 +41,7 @@ public sealed class MongoDbServiceInstaller : IServiceInstaller
         services.AddTransient<IUserHelper, UserHelper>();
         services.AddTransient<UserHelperAbstract, UserHelper>();
 
-        services.AddTransient<StaticGetTimeZone>();
+        services.AddScoped<StaticGetTimeZone>();
         services.AddTransient<IStaticGetTimeZone, StaticGetTimeZone>();
         services.AddTransient<StaticGetTimeZoneAbstract, StaticGetTimeZone>();
     }

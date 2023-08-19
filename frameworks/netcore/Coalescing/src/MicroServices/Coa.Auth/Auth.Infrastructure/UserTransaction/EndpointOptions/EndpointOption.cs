@@ -4,13 +4,13 @@ namespace Auth.Infrastructure.UserTransaction.EndpointOptions;
 
 public sealed class EndpointOption : IEndpointOption
 {
-    public string TransactionId => null!;
-    public string EndpointId => null!;
-    public string ClientName => null!;
-    public string PermissionType => null!;
-    public string PermissionName => null!;
-    public string PermissionValue => null!;
-    public string SpecialValue => null!;
-    public string CreatedDate => null!;
-    public string ExpirationDate => null!;
+    public string TransactionId { get; set; } = null!;
+    public string EndpointId { get; set; } = null!;
+    public string ClientName { get; set; } = null!;
+    public string PermissionType { get; set; } = null!; 
+    public string PermissionName { get; set; } = null!;
+    public string PermissionValue { get; set; } = null!;
+    public string SpecialValue { get; set; } = null!;
+    public string CreatedDate { get; set; } = null!;
+    public string ExpirationDate { get; set; } = null!;
 }

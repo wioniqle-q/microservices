@@ -1,3 +1,4 @@
+using System.Collections;
 using Auth.Domain.EntitiesAbstractions.MongoEntitiesAbstractions;
 using MongoDB.Bson.Serialization.Attributes;
 

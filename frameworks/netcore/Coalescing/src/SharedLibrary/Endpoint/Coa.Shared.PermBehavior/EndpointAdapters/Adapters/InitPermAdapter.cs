@@ -30,12 +30,12 @@ public sealed class InitPermAdapter : EndpointAdapterAbstract
                 ExceptionMessage = "HttpContext is null."
             };
 
-        var endpointValidateResult = await _endpointValidate.ValidateAccessBehavior(httpContent).ConfigureAwait(false);
+        var endpointValidateResult = await _endpointValidate.ValidateAccessBehavior(httpContent);
         if (endpointValidateResult.UniqueStatusCode is 1)
             return endpointValidateResult;
 
         var endpointAccessorResult = await _endpointAccessor
-            .VerifyAccessBehavior(endpointValidateResult.Token!, claimsIdentity).ConfigureAwait(false);
+            .VerifyAccessBehavior(endpointValidateResult.Token!, claimsIdentity);
         return endpointAccessorResult;
     }
 }

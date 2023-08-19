@@ -8,8 +8,8 @@ public sealed class ConcealmentProtocolServiceInstaller : IServiceInstaller
 {
     public void Install(IServiceCollection services, IConfiguration configuration)
     {
-        services.AddTransient<BaseConcealment>();
-        services.AddTransient<BaseConcealment, BaseConcealment>();
-        services.AddTransient<IConcealment, BaseConcealment>();
+        services.AddScoped<BaseConcealment>();
+        services.AddScoped<BaseConcealment, BaseConcealment>();
+        services.AddScoped<IConcealment, BaseConcealment>();
     }
 }

@@ -12,6 +12,9 @@ public abstract class UserHelperAbstract : IUserHelper
 
     public abstract Task<BaseUserEntitiy?> FindUserByQueryAsync(FilterDefinition<BaseUserEntitiy> query,
         CancellationToken cancellationToken = default);
+    
+    public abstract Task<List<BaseUserEntitiy>> FindUsersByQueryWithPageAsync(int skip, int limit,
+        CancellationToken cancellationToken = default);
 
     public abstract Task<bool> ValidateUserLastLoginAsync(BaseUserEntitiy user, DateTime currentLoginTime,
         CancellationToken cancellationToken = default);

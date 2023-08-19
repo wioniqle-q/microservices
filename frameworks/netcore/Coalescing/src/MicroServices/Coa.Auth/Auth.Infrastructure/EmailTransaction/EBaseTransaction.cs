@@ -32,7 +32,7 @@ public sealed class EBaseTransaction : EmailTransactionAbstract
 
     public override async Task<string> VerifyEmailAsync(string userName, string signature, string publicKey)
     {
-        var signatureValid = await _userSignature.ValidateUserTokenLifeTime(signature).ConfigureAwait(false);
+        var signatureValid = await _userSignature.ValidateUserTokenLifeTime(signature);
         if (signatureValid is not true) return "Signature is not valid or expired";
 
         var nameFilter = Builders<BaseUserEntitiy>.Filter.Eq(x => x.UserName, userName);
@@ -53,18 +53,17 @@ public sealed class EBaseTransaction : EmailTransactionAbstract
         var verifySign = await _adleman.VerifyAsync(userRsa, signRsa, publicKey);
         if (verifySign is not true) return "User information is not valid";
 
-        var signatureEquality = await _userSignature.VerifyUserIdEqualAsync(signature, string.Concat(userQuery.UserId))
-            .ConfigureAwait(false);
+        var signatureEquality = await _userSignature.VerifyUserIdEqualAsync(signature, string.Concat(userQuery.UserId));
         if (signatureEquality is not true)
             return "Signature is not valid, you are trying to verify another user email";
 
-        var replayAttack = await _userSignature.VerifyUserReplayToken(signature, DateTime.UtcNow).ConfigureAwait(false);
+        var replayAttack = await _userSignature.VerifyUserReplayToken(signature, DateTime.UtcNow);
         if (replayAttack is true)
             return "You are not authorized to perform this action, please contact admin";
 
         var currentTime = DateTime.UtcNow;
         var updatedTime = currentTime.AddMinutes(10);
-        var randomTransactionString = await GenerateRandomHexString().ConfigureAwait(false);
+        var randomTransactionString = await GenerateRandomHexString();
 
         var userSignatureInfo = new BaseUserSignatureEntitiy
         {
@@ -79,8 +78,8 @@ public sealed class EBaseTransaction : EmailTransactionAbstract
         };
 
         var refreshToken = await _userSignature
-            .GenerateUserRefreshToken(string.Concat(userQuery.UserId), userSignatureInfo.TrialDate, userSignatureInfo)
-            .ConfigureAwait(false);
+                .GenerateUserRefreshToken(string.Concat(userQuery.UserId), userSignatureInfo.TrialDate,
+                    userSignatureInfo);
         if (string.IsNullOrEmpty(refreshToken))
             return "Operation failed, please contact admin (Email verification - R)";
 
@@ -96,12 +95,11 @@ public sealed class EBaseTransaction : EmailTransactionAbstract
             .Set(x => x.UserProperty.LastLogin, string.Concat(userUtcTime))
             .Set(x => x.UserProperty.RefreshToken, refreshToken);
 
-        var operation = await _userHelper.UpdateUserVerifyEmailAsync(userFilter, userUpdate, CancellationToken.None)
-            .ConfigureAwait(false);
+        var operation = await _userHelper.UpdateUserVerifyEmailAsync(userFilter, userUpdate, CancellationToken.None);
 
         return operation is not true
             ? "Operation failed, please contact admin (Email verification)"
-            : "Email verified successfully";
+            : refreshToken;
     }
 
     public override async Task SendEmailAsync(string email, string subject, string message)

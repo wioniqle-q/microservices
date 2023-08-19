@@ -58,7 +58,7 @@ public sealed class UserSignature : UserSignatureAbstract
             throw new ArgumentException("Invalid arguments U-S");
 
         var generateUserToken =
-            await GenerateUserToken(userId, expirationDate, baseUserEntitiy).ConfigureAwait(false);
+            await GenerateUserToken(userId, expirationDate, baseUserEntitiy);
         if (string.IsNullOrEmpty(generateUserToken))
             throw new ArgumentException("Invalid arguments U-G-S");
 
@@ -89,7 +89,7 @@ public sealed class UserSignature : UserSignatureAbstract
             throw new ArgumentException("Invalid arguments U-T (U-S)");
 
         var tokenHandler = new JwtSecurityTokenHandler();
-        var validationParameters = await GetValidationParameters().ConfigureAwait(false);
+        var validationParameters = await GetValidationParameters();
 
         try
         {
@@ -111,13 +111,13 @@ public sealed class UserSignature : UserSignatureAbstract
         if (!tokenHandler.CanReadToken(userToken))
             return false;
 
-        var validationParameters = await GetValidationParameters().ConfigureAwait(false);
+        var validationParameters = await GetValidationParameters();
 
         try
         {
             tokenHandler.ValidateToken(userToken, validationParameters, out _);
 
-            var nameIdentifier = await GetTokenNameIdentifier(userToken).ConfigureAwait(false);
+            var nameIdentifier = await GetTokenNameIdentifier(userToken);
             if (string.IsNullOrEmpty(nameIdentifier))
                 return false;
 
@@ -138,7 +138,7 @@ public sealed class UserSignature : UserSignatureAbstract
         if (!tokenHandler.CanReadToken(userToken))
             return false;
 
-        var validationParameters = await GetValidationParameters().ConfigureAwait(false);
+        var validationParameters = await GetValidationParameters();
 
         try
         {

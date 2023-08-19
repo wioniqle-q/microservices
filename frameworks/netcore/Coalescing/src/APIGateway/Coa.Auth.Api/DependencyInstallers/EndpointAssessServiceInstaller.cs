@@ -30,27 +30,27 @@ public sealed class EndpointAssessServiceInstaller : IServiceInstaller
         var endpointOptions = new EndpointOption();
         configuration.GetSection("EndpointOptions").Bind(endpointOptions);
 
-        services.AddTransient<IEndpointOption, EndpointOption>();
+        services.AddScoped<IEndpointOption, EndpointOption>();
         services.AddSingleton(endpointOptions);
 
-        services.AddTransient<ValueConclusion>();
-        services.AddTransient<IConclusions, ValueConclusion>();
-        services.AddTransient<ConclusionsAbstract, ValueConclusion>();
+        services.AddScoped<ValueConclusion>();
+        services.AddScoped<IConclusions, ValueConclusion>();
+        services.AddScoped<ConclusionsAbstract, ValueConclusion>();
 
-        services.AddTransient<EndpointCredential>();
-        services.AddTransient<IEndpointCredential, EndpointCredential>();
-        services.AddTransient<EndpointCredentialAbstract, EndpointCredential>();
+        services.AddScoped<EndpointCredential>();
+        services.AddScoped<IEndpointCredential, EndpointCredential>();
+        services.AddScoped<EndpointCredentialAbstract, EndpointCredential>();
 
-        services.AddTransient<EndpointAccessor>();
-        services.AddTransient<IEndpointAccessor, EndpointAccessor>();
-        services.AddTransient<EndpointAccessorAbstract, EndpointAccessor>();
+        services.AddScoped<EndpointAccessor>();
+        services.AddScoped<IEndpointAccessor, EndpointAccessor>();
+        services.AddScoped<EndpointAccessorAbstract, EndpointAccessor>();
 
-        services.AddTransient<EndpointValidate>();
-        services.AddTransient<IEndpointValidate, EndpointValidate>();
-        services.AddTransient<EndpointValidateAbstract, EndpointValidate>();
+        services.AddScoped<EndpointValidate>();
+        services.AddScoped<IEndpointValidate, EndpointValidate>();
+        services.AddScoped<EndpointValidateAbstract, EndpointValidate>();
 
-        services.AddTransient<InitPermAdapter>();
-        services.AddTransient<IEndpointAdapter, InitPermAdapter>();
-        services.AddTransient<EndpointAdapterAbstract, InitPermAdapter>();
+        services.AddScoped<InitPermAdapter>();
+        services.AddScoped<IEndpointAdapter, InitPermAdapter>();
+        services.AddScoped<EndpointAdapterAbstract, InitPermAdapter>();
     }
 }

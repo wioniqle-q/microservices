@@ -19,13 +19,14 @@
         <ProjectReference Include="..\..\MicroServices\Coa.Auth\Auth.Infrastructure\Auth.Infrastructure.csproj"/>
         <ProjectReference Include="..\..\SharedLibrary\Endpoint\Coa.Shared.PermBehavior\Coa.Shared.PermBehavior.csproj"/>
         <ProjectReference Include="..\..\SharedLibrary\IoC\Coa.Shared.IoC\Coa.Shared.IoC.csproj"/>
-       <ProjectReference Include="..\..\SharedLibrary\Totp\Coa.Shared.Totp\Coa.Shared.Totp.csproj" />
+        <ProjectReference Include="..\..\SharedLibrary\Totp\Coa.Shared.Totp\Coa.Shared.Totp.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
         <PackageReference Include="MediatR" Version="12.1.1"/>
         <PackageReference Include="MediatR.Extensions.FluentValidation.AspNetCore" Version="4.0.0"/>
         <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="7.0.9"/>
+        <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="8.0.0-preview.6.23329.11"/>
         <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning" Version="5.1.0"/>
         <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning.ApiExplorer" Version="5.1.0"/>
     </ItemGroup>

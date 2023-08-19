@@ -6,17 +6,19 @@ namespace Auth.Infrastructure.PasswordObfuscation;
 
 public static class ObfuscatePassword
 {
+    private const string RustDllPath = "hello_world.dll";
+
     private static readonly RandomNumberGenerator Generator = RandomNumberGenerator.Create();
     private static readonly byte[] Salt = new byte[32];
 
-    [DllImport("hello_world.dll", CallingConvention = CallingConvention.Cdecl)]
+    [DllImport(RustDllPath, CallingConvention = CallingConvention.Cdecl)]
     private static extern IntPtr create_hash(IntPtr password, IntPtr salt, uint iterations, uint memory,
         uint parallelism, uint hashLength);
 
-    [DllImport("hello_world.dll", CallingConvention = CallingConvention.Cdecl)]
+    [DllImport(RustDllPath, CallingConvention = CallingConvention.Cdecl)]
     private static extern bool verify_hash(IntPtr hash, IntPtr password);
 
-    [DllImport("hello_world.dll", CallingConvention = CallingConvention.Cdecl)]
+    [DllImport(RustDllPath, CallingConvention = CallingConvention.Cdecl)]
     private static extern void free_hash(IntPtr hash);
 
     public static async Task<string> Obfuscate(string password)

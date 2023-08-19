@@ -21,8 +21,12 @@ public class CredentialAssesment : CredentialAssesmentAbstract
     private readonly IUserHelper _userHelper;
     private readonly IUserSignature _userSignature;
 
-    public CredentialAssesment(IConcealment concealment, IUserHelper userHelper, IUserSignature userSignature,
-        IEventBus eventBus, Transfer transfer)
+    public CredentialAssesment(
+        IConcealment concealment,
+        IUserHelper userHelper, 
+        IUserSignature userSignature,
+        IEventBus eventBus,
+        Transfer transfer)
     {
         _concealment = concealment;
         _userHelper = userHelper;
@@ -36,29 +40,33 @@ public class CredentialAssesment : CredentialAssesmentAbstract
         var assesParams = await AssessPassword(user);
         if (string.IsNullOrEmpty(assesParams.Outcome))
             return await new ValueTask<OutcomeValue>(
-                new OutcomeValue("Unable to parse credential [CredentialAssesment]", null, null, null, null, null, null,
-                    null, null, null));
+                new OutcomeValue
+                {
+                    Outcome = "Credential failed to be parsed, cloaking failed"
+                });
 
         return await new ValueTask<OutcomeValue>(assesParams);
     }
 
     protected virtual async Task<OutcomeValue> AssessPassword(BaseUserEntitiy user)
     {
-        var assesConcealExists = await AssessConcealment(user).ConfigureAwait(false);
-        if (string.IsNullOrWhiteSpace(assesConcealExists.UserName) ||
+        var assesConcealExists = await AssessConcealment(user);
+        if (string.IsNullOrWhiteSpace(assesConcealExists.Email) ||
             string.IsNullOrWhiteSpace(assesConcealExists.Password))
             return await new ValueTask<OutcomeValue>(
-                new OutcomeValue("Credential failed to be parsed, cloaking failed", null, null, null, null, null, null,
-                    null, null, null));
+                new OutcomeValue
+                {
+                    Outcome = "Credential failed to be parsed, cloaking failed"
+                });
 
-        var filter = Builders<BaseUserEntitiy>
-            .Filter.Eq(x => x.UserName, assesConcealExists.UserName);
+        var filter = Builders<BaseUserEntitiy>.Filter.Eq(x => x.Email, assesConcealExists.Email);
 
-        var assesExists = await _userHelper.FindUserByQueryAsync(filter, CancellationToken.None).ConfigureAwait(false);
+        var assesExists = await _userHelper.FindUserByQueryAsync(filter, CancellationToken.None);
         if (assesExists is null || assesExists.UserProperty.IsDeleted)
-            return await new ValueTask<OutcomeValue>(new OutcomeValue("User not present", null, null, null, null, null,
-                null,
-                null, null, null));
+            return await new ValueTask<OutcomeValue>(new OutcomeValue
+            {
+                Outcome = "User not present"
+            });
 
         var transferBaseUserEntity = new BaseUserEntitiy
         {
@@ -84,16 +92,17 @@ public class CredentialAssesment : CredentialAssesmentAbstract
 
         var transferValidation = await _transfer.ValidateTransferRefreshToken(
             assesConcealExists.UserProperty.RefreshToken, transferBaseUserEntity, transferBaseDevice,
-            CancellationToken.None).ConfigureAwait(false);
+            CancellationToken.None);
 
         if (transferValidation.Status is not true)
         {
-            var faAsync = await UpdateUser2FaAsync(assesExists, CancellationToken.None).ConfigureAwait(false);
+            var faAsync = await UpdateUser2FaAsync(assesExists, CancellationToken.None);
             if (faAsync is not true)
-                return await new ValueTask<OutcomeValue>(new OutcomeValue(
-                    "An unidentified situation has occurred on system, Please contact the system administrator.", null,
-                    null, null, null, null, null,
-                    null, null, null));
+                return await new ValueTask<OutcomeValue>(new OutcomeValue
+                {
+                    Outcome =
+                        "An unidentified situation has occurred on system, Please contact the system administrator."
+                });
 
             var unAuthorisedEvent = new UnAuthorisedEvent
             {
@@ -106,12 +115,14 @@ public class CredentialAssesment : CredentialAssesmentAbstract
                 Device = assesConcealExists.Device
             };
 
-            await _eventBus.PublishAsync(unAuthorisedEvent, default).ConfigureAwait(false);
+            await _eventBus.PublishAsync(unAuthorisedEvent, default);
 
-            return await new ValueTask<OutcomeValue>(new OutcomeValue(
-                "Wew have detected unusual activity on your account. Please confirm the verification link sent to your email address to complete the verification step of our system. If you are aware of a problem with your account, please do not forget to contact us. Our system will take action to protect you. Thank you for your patience.",
-                null, transferValidation.Description, null, null, null, null,
-                null, null, null));
+            return await new ValueTask<OutcomeValue>(new OutcomeValue
+            {
+                Outcome =
+                    "Wew have detected unusual activity on your account. Please confirm the verification link sent to your email address to complete the verification step of our system. If you are aware of a problem with your account, please do not forget to contact us. Our system will take action to protect you. Thank you for your patience.",
+                Description = transferValidation.Description
+            });
         }
 
         switch (assesExists.UserProperty)
@@ -129,29 +140,30 @@ public class CredentialAssesment : CredentialAssesmentAbstract
                     Device = assesConcealExists.Device
                 };
 
-                await _eventBus.PublishAsync(unAuthorisedEvent, default).ConfigureAwait(false);
+                await _eventBus.PublishAsync(unAuthorisedEvent, default);
 
                 return await new ValueTask<OutcomeValue>(
-                    new OutcomeValue(
-                        "Email confirmation is required to activate your account. Please double check your email address.",
-                        null, null, null, null, null, null,
-                        null, null, null));
+                    new OutcomeValue
+                    {
+                        Outcome =
+                            "Email confirmation is required to activate your account. Please double check your email address."
+                    });
             }
             case { IsLocked: true, Require2Fa: true }:
                 return await new ValueTask<OutcomeValue>(
-                    new OutcomeValue(
-                        "Please verify the link in your email. You are now in the 2-step verification process. If you prefer to run a 2-step verification every 30 or 90 days, contact the board administrator. The default setting is 1 day.",
-                        null, null, null, null, null, null,
-                        null, null, null));
+                    new OutcomeValue
+                    {
+                        Outcome =
+                            "Please verify the link in your email. You are now in the 2-step verification process. If you prefer to run a 2-step verification every 30 or 90 days, contact the board administrator. The default setting is 1 day."
+                    });
         }
 
-        var verifySignature = await _userSignature.ValidateUserTokenLifeTime(assesExists.UserProperty.Token)
-            .ConfigureAwait(false);
+        var verifySignature = await _userSignature.ValidateUserTokenLifeTime(assesExists.UserProperty.Token);
         if (verifySignature is false)
         {
             var currenTime = DateTime.UtcNow;
             var updatedTime = currenTime.AddDays(14);
-            var randomTransactionString = await GenerateRandomHexString().ConfigureAwait(false);
+            var randomTransactionString = await GenerateRandomHexString();
 
             var userSignatureInfo = new BaseUserSignatureEntitiy
             {
@@ -167,9 +179,11 @@ public class CredentialAssesment : CredentialAssesmentAbstract
 
             var reSignProcess = await _userHelper
                 .UpdateUserTokenAsync(new BaseUserEntitiy { UserName = assesExists.UserName }, userSignatureInfo,
-                    CancellationToken.None).ConfigureAwait(false);
-            return await new ValueTask<OutcomeValue>(new OutcomeValue(reSignProcess, null, null, null, null, null, null,
-                null, null, null));
+                    CancellationToken.None);
+            return await new ValueTask<OutcomeValue>(new OutcomeValue
+            {
+                Outcome = reSignProcess
+            });
         }
 
         var attackSignature = await _userHelper
@@ -178,15 +192,16 @@ public class CredentialAssesment : CredentialAssesmentAbstract
                     UserName = assesExists.UserName, UserProperty = new BaseUserProperty
                         { TimeZone = assesConcealExists.UserProperty.TimeZone }
                 }, DateTime.UtcNow,
-                CancellationToken.None).ConfigureAwait(false);
+                CancellationToken.None);
         if (attackSignature is false)
         {
-            var faAsync = await UpdateUser2FaAsync(assesExists, CancellationToken.None).ConfigureAwait(false);
+            var faAsync = await UpdateUser2FaAsync(assesExists, CancellationToken.None);
             if (faAsync is not true)
-                return await new ValueTask<OutcomeValue>(new OutcomeValue(
-                    "An unidentified situation has occurred on production, Please contact the system administrator.",
-                    null, null, null, null, null, null,
-                    null, null, null));
+                return await new ValueTask<OutcomeValue>(new OutcomeValue
+                {
+                    Outcome =
+                        "An unidentified situation has occurred on production, Please contact the system administrator."
+                });
 
             var unAuthorisedEvent = new UnAuthorisedEvent
             {
@@ -199,12 +214,13 @@ public class CredentialAssesment : CredentialAssesmentAbstract
                 Device = assesConcealExists.Device
             };
 
-            await _eventBus.PublishAsync(unAuthorisedEvent, default).ConfigureAwait(false);
+            await _eventBus.PublishAsync(unAuthorisedEvent, default);
 
-            return await new ValueTask<OutcomeValue>(new OutcomeValue(
-                "An unidentified situation has occurred on your account, please verify the link in the e-mail address you received to unlock your account.",
-                null, null, null, null, null, null,
-                null, null, null));
+            return await new ValueTask<OutcomeValue>(new OutcomeValue
+            {
+                Outcome =
+                    "An unidentified situation has occurred on your account, please verify the link in the e-mail address you received to unlock your account."
+            });
         }
 
         var assesObfuscation = await AssesObfuscation(assesConcealExists.Password,
@@ -216,28 +232,32 @@ public class CredentialAssesment : CredentialAssesmentAbstract
                     TimeZone = assesConcealExists.UserProperty.TimeZone,
                     Require2Fa = assesExists.UserProperty.Require2Fa
                 }
-            }).ConfigureAwait(false);
-        return await new ValueTask<OutcomeValue>(new OutcomeValue(assesObfuscation.Outcome!,
-            assesExists.UserId.ToString(), null, null, null,
-            null, null,
-            null, null, null));
+            });
+        return await new ValueTask<OutcomeValue>(new OutcomeValue
+        {
+            UniqueResId = assesExists.UserId.ToString(),
+            Outcome = assesObfuscation.Outcome!,
+            RefreshToken = transferValidation.Description
+        });
     }
 
     protected virtual async ValueTask<OutcomeValue> AssesObfuscation(string? password, BaseUserEntitiy user)
     {
         if (password is null || string.IsNullOrWhiteSpace(user.Password))
-            return new OutcomeValue("Your password cannot be a blank, please try again", null, null, null, null, null,
-                null,
-                null, null, null);
+            return new OutcomeValue
+            {
+                Outcome = "Your password cannot be a blank, please try again"
+            };
 
-        var revealHash = await _concealment.RevealAsync(user.Password, null, null).ConfigureAwait(false);
+        var revealHash = await _concealment.RevealAsync(user.Password, null, null);
 
-        var verifyPassword = await ObfuscatePassword.Verify(revealHash, password).ConfigureAwait(false);
+        var verifyPassword = await ObfuscatePassword.Verify(revealHash, password);
         if (verifyPassword is not true)
             return await new ValueTask<OutcomeValue>(
-                new OutcomeValue("You have entered an incorrect password, please try again", null, null, null, null,
-                    null, null,
-                    null, null, null));
+                new OutcomeValue
+                {
+                    Outcome = "You have entered an incorrect password, please try again"
+                });
 
         var loginUpdate = await _userHelper
             .SaveUserLastLoginAsync(
@@ -246,16 +266,18 @@ public class CredentialAssesment : CredentialAssesmentAbstract
                     UserName = user.UserName,
                     UserProperty = new BaseUserProperty
                         { TimeZone = user.UserProperty.TimeZone, Require2Fa = user.UserProperty.Require2Fa }
-                }, CancellationToken.None).ConfigureAwait(false);
+                }, CancellationToken.None);
         if (loginUpdate is not true)
-            return await new ValueTask<OutcomeValue>(new OutcomeValue(
-                "An unidentified situation has occurred on assesment, Please contact the system administrator.", null,
-                null, null, null, null, null,
-                null, null, null));
+            return await new ValueTask<OutcomeValue>(new OutcomeValue
+            {
+                Outcome =
+                    "An unidentified situation has occurred on assesment, Please contact the system administrator."
+            });
 
-        return await new ValueTask<OutcomeValue>(new OutcomeValue("User has successfully logged on", null, null, null,
-            null, null, null,
-            null, null, null));
+        return await new ValueTask<OutcomeValue>(new OutcomeValue
+        {
+            Outcome = "User has successfully logged on"
+        });
     }
 
     protected virtual async Task<bool> UpdateUser2FaAsync(BaseUserEntitiy baseUserEntitiy,
@@ -267,19 +289,18 @@ public class CredentialAssesment : CredentialAssesmentAbstract
             .Set(x => x.UserProperty.Require2Fa, true)
             .Set(x => x.UserProperty.IsEmailConfirmed, false);
 
-        var result = await _userHelper.UpdateUserAsync(filter2Fa, update2Fa, null!, CancellationToken.None)
-            .ConfigureAwait(false);
+        var result = await _userHelper.UpdateUserAsync(filter2Fa, update2Fa, null!, CancellationToken.None);
         return result;
     }
 
     protected virtual async ValueTask<BaseUserEntitiy> AssessConcealment(BaseUserEntitiy user)
     {
-        if (string.IsNullOrWhiteSpace(user.UserName) || string.IsNullOrWhiteSpace(user.Password))
+        if (string.IsNullOrWhiteSpace(user.Email) || string.IsNullOrWhiteSpace(user.Password))
             return new BaseUserEntitiy();
 
-        return new BaseUserEntitiy
+        var baseUser = new BaseUserEntitiy
         {
-            UserName = await _concealment.RevealAsync(user.UserName, null, null),
+            Email = await _concealment.RevealAsync(user.Email, null, null),
             Password = await _concealment.RevealAsync(user.Password, null, null),
             UserProperty = new BaseUserProperty
             {
@@ -297,13 +318,15 @@ public class CredentialAssesment : CredentialAssesmentAbstract
                 DeviceNetworkIp = await _concealment.RevealAsync(user.Device.DeviceNetworkIp, null, null),
                 DeviceNetworkMac = await _concealment.RevealAsync(user.Device.DeviceNetworkMac, null, null),
                 DeviceHardwareId = await _concealment.RevealAsync(user.Device.DeviceHardwareId, null, null),
-                DeviceHardwareMotherboardName =
-                    await _concealment.RevealAsync(user.Device.DeviceHardwareMotherboardName, null, null),
+                DeviceHardwareMotherboardName = await _concealment
+                    .RevealAsync(user.Device.DeviceHardwareMotherboardName, null, null),
                 DeviceHardwareOsName = await _concealment.RevealAsync(user.Device.DeviceHardwareOsName, null, null),
                 DeviceProcessorName = await _concealment.RevealAsync(user.Device.DeviceProcessorName, null, null),
                 DeviceGraphicsName = await _concealment.RevealAsync(user.Device.DeviceGraphicsName, null, null)
             }
         };
+
+        return baseUser;
     }
 
     protected virtual async ValueTask<string> GenerateRandomHexString(int length = 36)

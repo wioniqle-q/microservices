@@ -24,8 +24,7 @@ public class ModuleRegistry : ModuleManagerFactoryAbstract
         var assemblies = typeOfModules.Select(module => module.Assembly).Distinct().ToList();
 
         var configurationContext = new ComponentConfigurationContext(new ServiceCollection());
-        var modules = await _moduleLoaderFactory.LoadModulesAsync(assemblies, configurationContext)
-            .ConfigureAwait(false);
+        var modules = await _moduleLoaderFactory.LoadModulesAsync(assemblies, configurationContext);
 
         var tasks = modules.Select(module => StartModuleAsync(module, configurationContext));
         await Task.WhenAll(tasks);

@@ -8,6 +8,7 @@ public abstract class BuildContextAbstract : IBuildContext
     public abstract string DatabaseName { get; }
     public abstract IMongoDatabase Database { get; }
     public abstract IMongoClient Client { get; }
-    public abstract Task<IClientSessionHandle> StartSessionAsync(CancellationToken cancellationToken = default);
+    public abstract Task<IClientSessionHandle> StartSessionAsync(ClientSessionOptions? options = null, 
+        CancellationToken cancellationToken = default);
     public abstract IMongoCollection<T> GetCollection<T>(string name);
 }

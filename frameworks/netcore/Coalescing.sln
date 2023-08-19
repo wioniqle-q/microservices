@@ -37,6 +37,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Endpoint", "Endpoint", "{7D
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Coa.Shared.PermBehavior", "Coalescing\src\SharedLibrary\Endpoint\Coa.Shared.PermBehavior\Coa.Shared.PermBehavior.csproj", "{C27195E6-046A-4898-BD12-52E4C827571A}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Totp", "Totp", "{210A2323-DC29-4325-B81B-2EE8CC818651}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Coa.Shared.Totp", "Coalescing\src\SharedLibrary\Totp\Coa.Shared.Totp\Coa.Shared.Totp.csproj", "{9AEDF34D-0A15-4630-82BF-910CD164CAE4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -71,6 +75,10 @@ Global
 		{C27195E6-046A-4898-BD12-52E4C827571A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C27195E6-046A-4898-BD12-52E4C827571A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C27195E6-046A-4898-BD12-52E4C827571A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9AEDF34D-0A15-4630-82BF-910CD164CAE4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9AEDF34D-0A15-4630-82BF-910CD164CAE4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9AEDF34D-0A15-4630-82BF-910CD164CAE4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9AEDF34D-0A15-4630-82BF-910CD164CAE4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -89,6 +97,8 @@ Global
 		{211097A3-995C-495D-B27C-BD47181769BE} = {9792D12F-2883-4AC2-AA01-230DA8433910}
 		{7D016067-EBE2-4F46-BBF5-88F3FCA15349} = {25E5C9F1-A0B0-4619-88C2-7573529B555F}
 		{C27195E6-046A-4898-BD12-52E4C827571A} = {7D016067-EBE2-4F46-BBF5-88F3FCA15349}
+		{210A2323-DC29-4325-B81B-2EE8CC818651} = {25E5C9F1-A0B0-4619-88C2-7573529B555F}
+		{9AEDF34D-0A15-4630-82BF-910CD164CAE4} = {210A2323-DC29-4325-B81B-2EE8CC818651}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C94C3F21-503C-4567-9298-965786450A94}

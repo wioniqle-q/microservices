@@ -9,8 +9,8 @@ public sealed class GuidServiceInstaller : IServiceInstaller
 {
     public void Install(IServiceCollection services, IConfiguration configuration)
     {
-        services.AddTransient<BaseGuid>();
-        services.AddTransient<IGuid, BaseGuid>();
-        services.AddTransient<GuidAbstract, BaseGuid>();
+        services.AddScoped<BaseGuid>();
+        services.AddScoped<IGuid, BaseGuid>();
+        services.AddScoped<GuidAbstract, BaseGuid>();
     }
 }

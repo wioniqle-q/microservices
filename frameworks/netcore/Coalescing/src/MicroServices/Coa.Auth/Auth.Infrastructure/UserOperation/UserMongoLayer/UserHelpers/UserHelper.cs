@@ -27,15 +27,22 @@ public sealed class UserHelper : UserHelperAbstract
     public override async Task<BaseUserEntitiy?> GetUserByIdAsync(Guid userId,
         CancellationToken cancellationToken = default)
     {
-        var user = await _userOperation.GetUserByIdAsync(userId, cancellationToken).ConfigureAwait(false);
+        var user = await _userOperation.GetUserByIdAsync(userId, cancellationToken);
         return user;
     }
 
     public override async Task<BaseUserEntitiy?> FindUserByQueryAsync(FilterDefinition<BaseUserEntitiy> query,
         CancellationToken cancellationToken = default)
     {
-        var user = await _userOperation.FindUserByQueryAsync(query, cancellationToken).ConfigureAwait(false);
+        var user = await _userOperation.FindUserByQueryAsync(query, cancellationToken);
         return user;
+    }
+
+    public override async Task<List<BaseUserEntitiy>> FindUsersByQueryWithPageAsync(int skip, int limit,
+        CancellationToken cancellationToken = default)
+    {
+        var users = await _userOperation.FindUsersByQueryWithPageAsync(skip, limit, cancellationToken);
+        return users ?? new List<BaseUserEntitiy>();
     }
 
     public override async Task<OutComeValue> CreateUserAsync(BaseUserEntitiy user,
@@ -43,7 +50,7 @@ public sealed class UserHelper : UserHelperAbstract
         CancellationToken cancellationToken = default)
     {
         var filter = Builders<BaseUserEntitiy>.Filter.Eq(x => x.UserName, user.UserName);
-        var userExist = await FindUserByQueryAsync(filter, cancellationToken).ConfigureAwait(false);
+        var userExist = await FindUserByQueryAsync(filter, cancellationToken);
         if (userExist is not null)
             return new OutComeValue
             {
@@ -52,7 +59,7 @@ public sealed class UserHelper : UserHelperAbstract
             };
 
         var obfuscatePassword = await ObfuscatePassword.Obfuscate(user.Password).ConfigureAwait(true);
-        var concealedPassword = await _concealment.ConcealAsync(obfuscatePassword, null, null).ConfigureAwait(false);
+        var concealedPassword = await _concealment.ConcealAsync(obfuscatePassword, null, null);
 
         var genSignature =
             await _userSignature.GenerateUserToken(string.Concat(user.UserId), signatureEntitiy.TrialDate,
@@ -114,7 +121,7 @@ public sealed class UserHelper : UserHelperAbstract
             UserRsa = userRsa
         };
 
-        var result = await _userOperation.CreateUserAsync(userEntitiy, cancellationToken).ConfigureAwait(false);
+        var result = await _userOperation.CreateUserAsync(userEntitiy, cancellationToken);
         if (result is false)
             return new OutComeValue
             {
@@ -137,7 +144,7 @@ public sealed class UserHelper : UserHelperAbstract
     {
         // THIS CODE WILL BE REFACTOR LATER
 
-        var result = await _userOperation.CreateManyUserAsync(users, cancellationToken).ConfigureAwait(false);
+        var result = await _userOperation.CreateManyUserAsync(users, cancellationToken);
         if (result is false)
             return new OutComeValue
             {
@@ -157,7 +164,7 @@ public sealed class UserHelper : UserHelperAbstract
         CancellationToken cancellationToken = default)
     {
         var filter = Builders<BaseUserEntitiy>.Filter.Eq(x => x.UserName, user.UserName);
-        var userExist = await FindUserByQueryAsync(filter, cancellationToken).ConfigureAwait(false);
+        var userExist = await FindUserByQueryAsync(filter, cancellationToken);
         if (userExist?.UserProperty is { IsLocked: true, IsDeleted: not true })
             return false;
 
@@ -174,7 +181,7 @@ public sealed class UserHelper : UserHelperAbstract
                 .Update
                 .Set(x => x.UserProperty.LastLogin, string.Concat(userUtcTime));
 
-            var result = await _userOperation.UpdateUserAsync(filter, update, cancellationToken).ConfigureAwait(false);
+            var result = await _userOperation.UpdateUserAsync(filter, update, cancellationToken);
             if (result is false)
                 return false;
 
@@ -231,7 +238,7 @@ public sealed class UserHelper : UserHelperAbstract
             .Set(x => x.UserProperty.LastLogin, string.Concat(userUtcTime));
 
         var resultLastLogin = await _userOperation.UpdateUserAsync(filter, updateLastLogin, cancellationToken)
-            .ConfigureAwait(false);
+            ;
         if (resultLastLogin is false)
             return false;
 
@@ -243,30 +250,30 @@ public sealed class UserHelper : UserHelperAbstract
         CancellationToken cancellationToken = default)
     {
         var userFilter = Builders<BaseUserEntitiy>.Filter.Eq(x => x.UserName, user.UserName);
-        var userExist = await FindUserByQueryAsync(userFilter, cancellationToken).ConfigureAwait(false);
+        var userExist = await FindUserByQueryAsync(userFilter, cancellationToken);
         if (userExist?.UserProperty is
             { IsLocked: true, IsDeleted: true, Require2Fa: true, IsEmailConfirmed: not true })
             return false;
 
-        var revealOldPassword = await _concealment.RevealAsync(userExist!.Password, null, null).ConfigureAwait(false);
+        var revealOldPassword = await _concealment.RevealAsync(userExist!.Password, null, null);
 
-        var verifyPassword = await ObfuscatePassword.Verify(revealOldPassword, oldPassword).ConfigureAwait(false);
+        var verifyPassword = await ObfuscatePassword.Verify(revealOldPassword, oldPassword);
         if (verifyPassword is false)
             return false;
 
-        var verifyNewPassword = await ObfuscatePassword.Verify(revealOldPassword, newPassword).ConfigureAwait(false);
+        var verifyNewPassword = await ObfuscatePassword.Verify(revealOldPassword, newPassword);
         if (verifyNewPassword)
             return false;
 
-        var obfuscateNewPassword = await ObfuscatePassword.Obfuscate(newPassword).ConfigureAwait(false);
+        var obfuscateNewPassword = await ObfuscatePassword.Obfuscate(newPassword);
         var concealNewPassword =
-            await _concealment.ConcealAsync(obfuscateNewPassword, null, null).ConfigureAwait(false);
+            await _concealment.ConcealAsync(obfuscateNewPassword, null, null);
         var updatePassword = Builders<BaseUserEntitiy>
             .Update
             .Set(x => x.Password, concealNewPassword);
 
         var result = await _userOperation.UpdateUserAsync(userFilter, updatePassword, cancellationToken)
-            .ConfigureAwait(false);
+            ;
         return result;
     }
 
@@ -277,7 +284,7 @@ public sealed class UserHelper : UserHelperAbstract
             return true;
 
         var filter = Builders<BaseUserEntitiy>.Filter.Eq(x => x.UserName, user.UserName);
-        var userExist = await FindUserByQueryAsync(filter, cancellationToken).ConfigureAwait(false);
+        var userExist = await FindUserByQueryAsync(filter, cancellationToken);
         if (userExist?.UserProperty is { IsLocked: false, Require2Fa: not true })
             return true;
 
@@ -290,7 +297,7 @@ public sealed class UserHelper : UserHelperAbstract
             .Set(x => x.UserProperty.LastLogin, string.Concat(userUtcTime))
             .Set(x => x.UserProperty.Require2Fa, false);
 
-        var result = await _userOperation.UpdateUserAsync(filter, update, cancellationToken).ConfigureAwait(false);
+        var result = await _userOperation.UpdateUserAsync(filter, update, cancellationToken);
         return result;
     }
 
@@ -298,14 +305,14 @@ public sealed class UserHelper : UserHelperAbstract
         UpdateDefinition<BaseUserEntitiy> update, BaseUserSignatureEntitiy signatureEntitiy,
         CancellationToken cancellationToken = default)
     {
-        var result = await _userOperation.UpdateUserAsync(filter, update, cancellationToken).ConfigureAwait(false);
+        var result = await _userOperation.UpdateUserAsync(filter, update, cancellationToken);
         return result;
     }
 
     public override async Task<bool> UpdateUserVerifyEmailAsync(FilterDefinition<BaseUserEntitiy> filter,
         UpdateDefinition<BaseUserEntitiy> update, CancellationToken cancellationToken = default)
     {
-        var result = await _userOperation.UpdateUserAsync(filter, update, cancellationToken).ConfigureAwait(false);
+        var result = await _userOperation.UpdateUserAsync(filter, update, cancellationToken);
         return result;
     }
 
@@ -314,7 +321,7 @@ public sealed class UserHelper : UserHelperAbstract
     {
         var filter = Builders<BaseUserEntitiy>.Filter.Eq(x => x.UserName, user.UserName);
 
-        var userExist = await FindUserByQueryAsync(filter, cancellationToken).ConfigureAwait(false);
+        var userExist = await FindUserByQueryAsync(filter, cancellationToken);
         if (userExist?.UserProperty is { IsLocked: true, IsDeleted: not true })
             return "Token verification failed, You are not authorized to perform this action, please contact admin";
 
@@ -325,7 +332,7 @@ public sealed class UserHelper : UserHelperAbstract
             .Update
             .Set(x => x.UserProperty.Token, genSignature);
 
-        var result = await _userOperation.UpdateUserAsync(filter, update, cancellationToken).ConfigureAwait(false);
+        var result = await _userOperation.UpdateUserAsync(filter, update, cancellationToken);
         return result
             ? "Your session has expired. Please login again"
             : "Session failed, please contact admin";

@@ -9,8 +9,8 @@ public sealed class TotpServiceInstaller : IServiceInstaller
 {
     public void Install(IServiceCollection services, IConfiguration configuration)
     {
-        services.AddTransient<TotpBase>();
-        services.AddTransient<ITotp, TotpBase>();
-        services.AddTransient<TotpAbstract, TotpBase>();
+        services.AddScoped<TotpBase>();
+        services.AddScoped<ITotp, TotpBase>();
+        services.AddScoped<TotpAbstract, TotpBase>();
     }
 }

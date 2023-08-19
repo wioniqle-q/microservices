@@ -19,8 +19,19 @@ public sealed class UserMongoContext : IContext
         return _buildContext.GetCollection<T>(name);
     }
 
-    public Task<IClientSessionHandle> StartSessionAsync(CancellationToken cancellationToken = default)
+    public async Task<IClientSessionHandle> StartSessionAsync(CancellationToken cancellationToken = default)
     {
-        return _buildContext.StartSessionAsync(cancellationToken);
+        var sessionOptions = new ClientSessionOptions
+        {
+            CausalConsistency = true,
+            DefaultTransactionOptions = new TransactionOptions(
+                ReadConcern.Majority,
+                writeConcern: WriteConcern.W2,
+                readPreference: ReadPreference.PrimaryPreferred,
+                maxCommitTime: new Optional<TimeSpan?>(TimeSpan.FromSeconds(60))
+            )
+        };
+        
+        return await _buildContext.StartSessionAsync(sessionOptions, cancellationToken: cancellationToken);
     }
 }
