@@ -7,44 +7,44 @@ use aes::cipher::KeyInit;
 
 fn encrypt_string(input: &str, key: &[u8; 16]) -> Result<Vec<u8>, String> {
     let cipher = Aes128::new(GenericArray::from_slice(key));
-
     let input_bytes = input.as_bytes();
     let padding_length = 16 - (input_bytes.len() % 16);
-    let mut padded_input = input_bytes.to_vec();
-    for _ in 0..padding_length {
-        padded_input.push(padding_length as u8);
-    }
-
+    let mut padded_input: Vec<u8> = input_bytes.to_vec();
+    padded_input.extend(std::iter::repeat(padding_length as u8).take(padding_length));
     let mut encrypted_data = Vec::with_capacity(padded_input.len());
     for chunk in padded_input.chunks_exact(16) {
-        let mut block = GenericArray::clone_from_slice(chunk);
-        cipher.encrypt_block(&mut block);
-        encrypted_data.extend_from_slice(&block);
+  
+      let mut block = GenericArray::clone_from_slice(chunk);
+  
+      cipher.encrypt_block(&mut block);
+      encrypted_data.extend_from_slice(&block);
     }
-
+  
     Ok(encrypted_data)
 }
 
+
 fn decrypt_string(encrypted_data: &[u8], key: &[u8; 16]) -> Result<String, String> {
     let cipher = Aes128::new(GenericArray::from_slice(key));
-
-    let mut decrypted_data = Vec::with_capacity(encrypted_data.len());
-    for chunk in encrypted_data.chunks_exact(16) {
-        let mut block = GenericArray::clone_from_slice(chunk);
-        cipher.decrypt_block(&mut block);
-        decrypted_data.extend_from_slice(&block);
+  
+    let mut decrypted = Vec::with_capacity(encrypted_data.len());
+  
+    for block in encrypted_data.chunks_exact(16) {
+      let mut block = GenericArray::clone_from_slice(block);
+      cipher.decrypt_block(&mut block);
+      decrypted.extend_from_slice(&block);
+    }
+ 
+    let padding_length = decrypted.last().ok_or("Invalid padding")?;
+    if *padding_length > 16 {
+      return Err("Invalid padding".to_string()); 
     }
 
-    let padding_length = *decrypted_data.last().ok_or_else(|| "Invalid padding".to_string())?;
-    if padding_length > 16 {
-        return Err("Invalid padding".to_string());
-    }
+    decrypted.truncate(decrypted.len() - *padding_length as usize);
 
-    decrypted_data.truncate(decrypted_data.len() - padding_length as usize);
-
-    let decrypted_str = String::from_utf8(decrypted_data).map_err(|_| "Invalid UTF-8".to_string())?;
-
-    Ok(decrypted_str)
+    let decrypted = String::from_utf8(decrypted).map_err(|_| "Invalid UTF-8".to_string())?;
+  
+    Ok(decrypted)
 }
 
 #[no_mangle]
