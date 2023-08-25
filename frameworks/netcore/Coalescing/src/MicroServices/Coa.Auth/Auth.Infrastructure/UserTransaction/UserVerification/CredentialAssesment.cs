@@ -51,7 +51,7 @@ public class CredentialAssesment : CredentialAssesmentAbstract
     protected virtual async Task<OutcomeValue> AssessPassword(BaseUserEntitiy user)
     {
         var assesConcealExists = await AssessConcealment(user);
-        if (string.IsNullOrWhiteSpace(assesConcealExists.Email) ||
+        if (string.IsNullOrWhiteSpace(assesConcealExists.UserName) ||
             string.IsNullOrWhiteSpace(assesConcealExists.Password))
             return await new ValueTask<OutcomeValue>(
                 new OutcomeValue
@@ -59,7 +59,7 @@ public class CredentialAssesment : CredentialAssesmentAbstract
                     Outcome = "Credential failed to be parsed, cloaking failed"
                 });
 
-        var filter = Builders<BaseUserEntitiy>.Filter.Eq(x => x.Email, assesConcealExists.Email);
+        var filter = Builders<BaseUserEntitiy>.Filter.Eq(x => x.UserName, assesConcealExists.UserName);
 
         var assesExists = await _userHelper.FindUserByQueryAsync(filter, CancellationToken.None);
         if (assesExists is null || assesExists.UserProperty.IsDeleted)
@@ -295,12 +295,12 @@ public class CredentialAssesment : CredentialAssesmentAbstract
 
     protected virtual async ValueTask<BaseUserEntitiy> AssessConcealment(BaseUserEntitiy user)
     {
-        if (string.IsNullOrWhiteSpace(user.Email) || string.IsNullOrWhiteSpace(user.Password))
+        if (string.IsNullOrWhiteSpace(user.UserName) || string.IsNullOrWhiteSpace(user.Password))
             return new BaseUserEntitiy();
 
         var baseUser = new BaseUserEntitiy
         {
-            Email = await _concealment.RevealAsync(user.Email, null, null),
+            UserName = await _concealment.RevealAsync(user.UserName, null, null),
             Password = await _concealment.RevealAsync(user.Password, null, null),
             UserProperty = new BaseUserProperty
             {

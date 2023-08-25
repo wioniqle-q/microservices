@@ -26,9 +26,8 @@ public sealed class UserMongoContext : IContext
             CausalConsistency = true,
             DefaultTransactionOptions = new TransactionOptions(
                 ReadConcern.Majority,
-                writeConcern: WriteConcern.W2,
-                readPreference: ReadPreference.PrimaryPreferred,
-                maxCommitTime: new Optional<TimeSpan?>(TimeSpan.FromSeconds(60))
+                writeConcern: WriteConcern.WMajority,
+                readPreference: ReadPreference.PrimaryPreferred
             )
         };
         

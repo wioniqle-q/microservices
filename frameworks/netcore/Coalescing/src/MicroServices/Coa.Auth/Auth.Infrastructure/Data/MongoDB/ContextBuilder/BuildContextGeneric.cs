@@ -1,4 +1,6 @@
-﻿using Auth.Infrastructure.Data.MongoDB.ContextAbstractions;
+﻿using System.Security.Authentication;
+using System.Security.Cryptography.X509Certificates;
+using Auth.Infrastructure.Data.MongoDB.ContextAbstractions;
 using Auth.Infrastructure.Data.MongoDB.ContextOption;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
@@ -33,9 +35,8 @@ public sealed class BuildContextGeneric<TContext, TOptions> : BuildContextAbstra
             CausalConsistency = true,
             DefaultTransactionOptions = new TransactionOptions(
                 ReadConcern.Majority,
-                writeConcern: WriteConcern.W2,
-                readPreference: ReadPreference.PrimaryPreferred,
-                maxCommitTime: new Optional<TimeSpan?>(TimeSpan.FromSeconds(60))
+                writeConcern: WriteConcern.WMajority,
+                readPreference: ReadPreference.PrimaryPreferred
             )
         };
 
@@ -65,10 +66,11 @@ public sealed class BuildContextGeneric<TContext, TOptions> : BuildContextAbstra
         mongoSettings.LocalThreshold = new TimeSpan(0, 0, 60);
 
         mongoSettings.ReadConcern = ReadConcern.Majority;
-        mongoSettings.ReadPreference = ReadPreference.SecondaryPreferred;
-        mongoSettings.WriteConcern = WriteConcern.W2;
+        mongoSettings.ReadPreference = ReadPreference.PrimaryPreferred;
+        mongoSettings.WriteConcern = WriteConcern.WMajority;
         
         mongoSettings.ServerApi = new ServerApi(ServerApiVersion.V1, true);
+        mongoSettings.LinqProvider = LinqProvider.V3;
 
         return new MongoClient(mongoSettings);
     }
