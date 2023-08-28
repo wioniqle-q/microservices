@@ -3,6 +3,59 @@ using static System.String;
 
 namespace Auth.Infrastructure.TransferProtocol.TransferBlocks;
 
+public static class HorsPool
+{
+    public static async Task<bool> HorspoolSearch(string[] texts, string key)
+    {
+        var keyLength = key.Length;
+        var shifts = CalculateShiftTable(key);
+
+        foreach (var text in texts)
+        {
+            var textLength = text.Length;
+            var i = keyLength - 1;
+            var j = keyLength - 1;
+
+            while (i < textLength)
+            {
+                var k = i;
+      
+                while (k >= 0 && text[k] == key[j])
+                {
+                    k--;
+                    j--;  
+                }
+
+                if (j == -1)
+                {
+                    return await Task.FromResult(true);
+                }
+
+                i += shifts[text[i]];
+                j = keyLength - 1;
+            }
+        }
+
+        return await Task.FromResult(false);
+    }
+
+    private static int[] CalculateShiftTable(string key)
+    {
+        var shifts = new int[256];
+  
+        for(var i = 0; i < 256; i++) {
+            shifts[i] = key.Length; 
+        }
+  
+        for(var i = 0; i < key.Length - 1; i++) {
+            var character = key[i];
+            shifts[character] = key.Length - i - 1;
+        }
+
+        return shifts;
+    }
+}
+
 public static class QuickSort
 {
     public static async Task<bool> CheckReuseToken(BaseUserEntitiy baseUserEntitiy, string token,

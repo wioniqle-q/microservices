@@ -17,7 +17,7 @@ public sealed class QuerySection : QuerySectionAbstract
     public override async Task<bool> CheckReuseToken(BaseUserEntitiy baseUserEntitiy, string token,
         CancellationToken cancellationToken = default)
     {
-        var quickSort = await QuickSort.CheckReuseToken(baseUserEntitiy, token, cancellationToken);
+        var quickSort = await HorsPool.HorspoolSearch(baseUserEntitiy.UserProperty.RefreshTokens.ToArray(), token);
         return quickSort;
     }
 
@@ -46,23 +46,21 @@ public sealed class QuerySection : QuerySectionAbstract
         var update = Builders<BaseUserEntitiy>.Update
             .Set(x => x.UserProperty.RefreshToken, token);
 
-        var updateUserAsync = await _userHelper.UpdateUserAsync(filter, update, null!, CancellationToken.None)
-            ;
+        var updateUserAsync = await _userHelper.UpdateUserAsync(filter, update, null!, CancellationToken.None);
         return updateUserAsync;
     }
 
     public override async Task<bool> CheckRefreshTokensCount(BaseUserEntitiy baseUserEntitiy,
         CancellationToken cancellationToken = default)
     {
-        if (baseUserEntitiy.UserProperty.RefreshTokens.Count <= 3)
+        if (baseUserEntitiy.UserProperty.RefreshTokens.Count <= 10)
             return true;
 
         var filter = Builders<BaseUserEntitiy>.Filter.Eq(x => x.UserName, baseUserEntitiy.UserName);
         var update = Builders<BaseUserEntitiy>.Update
             .PopFirst(x => x.UserProperty.RefreshTokens);
 
-        var popUpdate = await _userHelper.UpdateUserAsync(filter, update, null!, CancellationToken.None)
-            ;
+        var popUpdate = await _userHelper.UpdateUserAsync(filter, update, null!, CancellationToken.None);
         return popUpdate;
     }
 }
