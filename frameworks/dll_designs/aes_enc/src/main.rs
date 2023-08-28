@@ -60,7 +60,7 @@ pub extern "C" fn free_buffer(ptr: *mut u8, size: size_t) {
 
 fn allocate_buffer(size: usize) -> *mut u8 {
     let layout = std::alloc::Layout::from_size_align(size, 1).unwrap();
-    let buffer_ptr = unsafe { std::alloc::alloc(layout) as *mut u8 };
+    let buffer_ptr = unsafe { std::alloc::alloc(layout) };
     if !buffer_ptr.is_null() {
         unsafe {
             std::ptr::write_bytes(buffer_ptr, 0, size);

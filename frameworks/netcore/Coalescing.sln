@@ -1,4 +1,4 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.33516.290
@@ -41,6 +41,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Totp", "Totp", "{210A2323-D
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Coa.Shared.Totp", "Coalescing\src\SharedLibrary\Totp\Coa.Shared.Totp\Coa.Shared.Totp.csproj", "{9AEDF34D-0A15-4630-82BF-910CD164CAE4}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Snowflake", "Snowflake", "{56B192A7-4919-4FEE-918A-7D50C44BD4D0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Coa.Snowflake", "Coalescing\src\SharedLibrary\Snowflake\Coa.Snowflake\Coa.Snowflake.csproj", "{10520BC1-3D6C-42F6-A107-DD6D1638D664}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -79,6 +83,10 @@ Global
 		{9AEDF34D-0A15-4630-82BF-910CD164CAE4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9AEDF34D-0A15-4630-82BF-910CD164CAE4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9AEDF34D-0A15-4630-82BF-910CD164CAE4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{10520BC1-3D6C-42F6-A107-DD6D1638D664}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{10520BC1-3D6C-42F6-A107-DD6D1638D664}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{10520BC1-3D6C-42F6-A107-DD6D1638D664}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{10520BC1-3D6C-42F6-A107-DD6D1638D664}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -99,6 +107,8 @@ Global
 		{C27195E6-046A-4898-BD12-52E4C827571A} = {7D016067-EBE2-4F46-BBF5-88F3FCA15349}
 		{210A2323-DC29-4325-B81B-2EE8CC818651} = {25E5C9F1-A0B0-4619-88C2-7573529B555F}
 		{9AEDF34D-0A15-4630-82BF-910CD164CAE4} = {210A2323-DC29-4325-B81B-2EE8CC818651}
+		{56B192A7-4919-4FEE-918A-7D50C44BD4D0} = {25E5C9F1-A0B0-4619-88C2-7573529B555F}
+		{10520BC1-3D6C-42F6-A107-DD6D1638D664} = {56B192A7-4919-4FEE-918A-7D50C44BD4D0}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C94C3F21-503C-4567-9298-965786450A94}
