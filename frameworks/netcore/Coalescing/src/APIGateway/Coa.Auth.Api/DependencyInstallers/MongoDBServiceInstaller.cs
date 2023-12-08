@@ -15,23 +15,15 @@ public sealed class MongoDbServiceInstaller : IServiceInstaller
 {
     public void Install(IServiceCollection services, IConfiguration configuration)
     {
-        var userContextOptions = new UserContextOptions
-        {
-            ConnectionString = configuration.GetSection("MongoDb:ConnectionString").Value ?? string.Empty,
-            DatabaseName = configuration.GetSection("MongoDb:DatabaseName").Value ?? string.Empty,
-            CollectionName = configuration.GetSection("MongoDb:CollectionName").Value ?? string.Empty
-        };
+        var userContextOptions = CreateUserContextOptions(configuration);
         services.AddSingleton(userContextOptions);
 
-        var buildContext =
-            BuildContextGeneric<UserMongoContext, UserContextOptions>.Instance(userContextOptions);
+        var buildContext = CreateBuildContext(userContextOptions);
         services.AddSingleton<IBuildContext>(buildContext);
 
         services.AddScoped<UserMongoContext>();
         services.AddScoped<IContext, UserMongoContext>();
-        services
-            .AddTransient<IBuildContext,
-                BuildContextGeneric<UserMongoContext, UserContextOptions>>();
+        services.AddTransient<IBuildContext, BuildContextGeneric<UserMongoContext, UserContextOptions>>();
 
         services.AddTransient<UserOperation>();
         services.AddTransient<IUserOperation, UserOperation>();
@@ -44,5 +36,21 @@ public sealed class MongoDbServiceInstaller : IServiceInstaller
         services.AddScoped<StaticGetTimeZone>();
         services.AddTransient<IStaticGetTimeZone, StaticGetTimeZone>();
         services.AddTransient<StaticGetTimeZoneAbstract, StaticGetTimeZone>();
+    }
+
+    private static UserContextOptions CreateUserContextOptions(IConfiguration configuration)
+    {
+        return new UserContextOptions
+        {
+            ConnectionString = configuration.GetSection("MongoDb:ConnectionString").Value ?? string.Empty,
+            DatabaseName = configuration.GetSection("MongoDb:DatabaseName").Value ?? string.Empty,
+            CollectionName = configuration.GetSection("MongoDb:CollectionName").Value ?? string.Empty
+        };
+    }
+
+    private static BuildContextGeneric<UserMongoContext, UserContextOptions> CreateBuildContext(
+        UserContextOptions userContextOptions)
+    {
+        return BuildContextGeneric<UserMongoContext, UserContextOptions>.Instance(userContextOptions);
     }
 }

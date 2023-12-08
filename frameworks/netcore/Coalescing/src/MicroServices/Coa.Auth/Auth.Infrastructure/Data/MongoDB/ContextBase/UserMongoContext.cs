@@ -3,34 +3,45 @@ using MongoDB.Driver;
 
 namespace Auth.Infrastructure.Data.MongoDB.ContextBase;
 
-public sealed class UserMongoContext : IContext
+public sealed class UserMongoContext(IBuildContext buildContext) : IContext
 {
-    private readonly IBuildContext _buildContext;
+    private readonly object _lock = new();
 
-    public UserMongoContext(IBuildContext buildContext)
+    public string DatabaseName
     {
-        _buildContext = buildContext;
+        get
+        {
+            lock (_lock)
+            {
+                return buildContext.DatabaseName;
+            }
+        }
     }
-
-    public string DatabaseName => _buildContext.DatabaseName;
 
     public IMongoCollection<T> GetCollection<T>(string name)
     {
-        return _buildContext.GetCollection<T>(name);
+        lock (_lock)
+        {
+            return buildContext.GetCollection<T>(name);
+        }
     }
 
-    public async Task<IClientSessionHandle> StartSessionAsync(CancellationToken cancellationToken = default)
+    public Task<IClientSessionHandle> StartSessionAsync(CancellationToken cancellationToken = default)
     {
-        var sessionOptions = new ClientSessionOptions
+        lock (_lock)
         {
-            CausalConsistency = true,
-            DefaultTransactionOptions = new TransactionOptions(
-                ReadConcern.Majority,
-                writeConcern: WriteConcern.WMajority,
-                readPreference: ReadPreference.PrimaryPreferred
-            )
-        };
-        
-        return await _buildContext.StartSessionAsync(sessionOptions, cancellationToken: cancellationToken);
+            var sessionOptions = new ClientSessionOptions
+            {
+                CausalConsistency = true,
+                DefaultTransactionOptions = new TransactionOptions(
+                    ReadConcern.Majority,
+                    writeConcern: WriteConcern.W2,
+                    readPreference: ReadPreference.PrimaryPreferred,
+                    maxCommitTime: new Optional<TimeSpan?>(TimeSpan.FromSeconds(60))
+                )
+            };
+            
+            return buildContext.StartSessionAsync(sessionOptions, cancellationToken);
+        }
     }
 }
