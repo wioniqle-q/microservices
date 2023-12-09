@@ -20,7 +20,7 @@ public sealed class MongoDbServiceInstaller : IServiceInstaller
 
         var buildContext = CreateBuildContext(userContextOptions);
         services.AddSingleton<IBuildContext>(buildContext);
-
+        
         services.AddScoped<UserMongoContext>();
         services.AddScoped<IContext, UserMongoContext>();
         services.AddTransient<IBuildContext, BuildContextGeneric<UserMongoContext, UserContextOptions>>();
@@ -51,6 +51,6 @@ public sealed class MongoDbServiceInstaller : IServiceInstaller
     private static BuildContextGeneric<UserMongoContext, UserContextOptions> CreateBuildContext(
         UserContextOptions userContextOptions)
     {
-        return BuildContextGeneric<UserMongoContext, UserContextOptions>.Instance(userContextOptions);
+        return BuildContextGeneric<UserMongoContext, UserContextOptions>.Instance(userContextOptions).Result;
     }
 }

@@ -5,30 +5,20 @@ namespace Auth.Infrastructure.Data.MongoDB.ContextBase;
 
 public sealed class UserMongoContext(IBuildContext buildContext) : IContext
 {
-    private readonly object _lock = new();
+    private readonly SemaphoreSlim _sessionSemaphore = new(15, 20);
 
-    public string DatabaseName
+    public string DatabaseName => buildContext.DatabaseName;
+    
+    public IMongoCollection<T> GetCollection<T>(string name) 
     {
-        get
-        {
-            lock (_lock)
-            {
-                return buildContext.DatabaseName;
-            }
-        }
+        return buildContext.GetCollection<T>(name);
     }
 
-    public IMongoCollection<T> GetCollection<T>(string name)
+    public async Task<IClientSessionHandle> StartSessionAsync(CancellationToken cancellationToken = default)
     {
-        lock (_lock)
-        {
-            return buildContext.GetCollection<T>(name);
-        }
-    }
-
-    public Task<IClientSessionHandle> StartSessionAsync(CancellationToken cancellationToken = default)
-    {
-        lock (_lock)
+        await _sessionSemaphore.WaitAsync(cancellationToken);
+        
+        try 
         {
             var sessionOptions = new ClientSessionOptions
             {
@@ -40,8 +30,13 @@ public sealed class UserMongoContext(IBuildContext buildContext) : IContext
                     maxCommitTime: new Optional<TimeSpan?>(TimeSpan.FromSeconds(60))
                 )
             };
-            
-            return buildContext.StartSessionAsync(sessionOptions, cancellationToken);
+
+            return await buildContext.Client.StartSessionAsync(sessionOptions, cancellationToken);
+        }
+        finally 
+        {
+            _sessionSemaphore.Release();
         }
     }
 }
+

@@ -7,45 +7,32 @@ namespace Auth.Infrastructure.Data.MongoDB.ContextBuilder;
 public sealed class BuildContextGeneric<TContext, TOptions>(TOptions contextOptions) : BuildContextAbstract
     where TOptions : UserContextOptions
 {
-    private static readonly object Lock = new();
+    private static readonly SemaphoreSlim Semaphore = new(1, 1);
     private static BuildContextGeneric<TContext, TOptions>? _buildContextGeneric;
     private readonly IMongoClient _client = CreateMongoClient(new MongoUrl(contextOptions.ConnectionString));
 
     public override string DatabaseName => contextOptions.CollectionName;
-
-    public override IMongoDatabase Database
+    public override IMongoDatabase Database => _client.GetDatabase(contextOptions.DatabaseName);
+    public override IMongoClient Client => _client;
+    public override IMongoCollection<T> GetCollection<T>(string name) => Database.GetCollection<T>(name);
+    public static async Task<BuildContextGeneric<TContext, TOptions>> Instance(TOptions options)
     {
-        get
+        await Semaphore.WaitAsync();
+        try 
         {
-            lock (Lock)
-            {
-                return _client.GetDatabase(contextOptions.DatabaseName);
-            }
+            return _buildContextGeneric ??= new BuildContextGeneric<TContext, TOptions>(options);  
+        }
+        finally 
+        {
+            Semaphore.Release();
         }
     }
 
-    public override IMongoClient Client
+    public override async Task<IClientSessionHandle> StartSessionAsync(ClientSessionOptions? options = null, CancellationToken cancellationToken = default)
     {
-        get
-        {
-            lock (Lock)
-            {
-                return _client;
-            }
-        }
-    }
-
-    public static BuildContextGeneric<TContext, TOptions> Instance(TOptions options)
-    {
-        lock (Lock)
-        {
-            return _buildContextGeneric ??= new BuildContextGeneric<TContext, TOptions>(options);
-        }
-    }
-
-    public override Task<IClientSessionHandle> StartSessionAsync(ClientSessionOptions? options = null, CancellationToken cancellationToken = default)
-    {
-        lock (Lock)
+        await Semaphore.WaitAsync(cancellationToken);
+        
+        try 
         {
             var sessionOptions = new ClientSessionOptions
             {
@@ -58,19 +45,15 @@ public sealed class BuildContextGeneric<TContext, TOptions>(TOptions contextOpti
                 )
             };
 
-            return _client.StartSessionAsync(options ?? sessionOptions, cancellationToken: cancellationToken);
+            return await Client.StartSessionAsync(sessionOptions, cancellationToken);
         }
-    }
-
-    public override IMongoCollection<T> GetCollection<T>(string name)
-    {
-        lock (Lock)
+        finally 
         {
-            return Database.GetCollection<T>(name);
+            Semaphore.Release();
         }
     }
-
-    private static IMongoClient CreateMongoClient(MongoUrl url)
+    
+    private static MongoClient CreateMongoClient(MongoUrl url)
     {
         var mongoSettings = MongoClientSettings.FromUrl(url);
 
@@ -88,7 +71,7 @@ public sealed class BuildContextGeneric<TContext, TOptions>(TOptions contextOpti
         mongoSettings.LocalThreshold = new TimeSpan(0, 0, 60);
 
         mongoSettings.ReadConcern = ReadConcern.Majority;
-        mongoSettings.ReadPreference = ReadPreference.SecondaryPreferred;
+        mongoSettings.ReadPreference = ReadPreference.PrimaryPreferred;
         mongoSettings.WriteConcern = WriteConcern.W2;
         
         mongoSettings.ServerApi = new ServerApi(ServerApiVersion.V1, true);
