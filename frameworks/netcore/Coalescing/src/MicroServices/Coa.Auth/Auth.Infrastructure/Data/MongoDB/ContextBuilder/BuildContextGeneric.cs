@@ -71,8 +71,8 @@ public sealed class BuildContextGeneric<TContext, TOptions>(TOptions contextOpti
         mongoSettings.LocalThreshold = new TimeSpan(0, 0, 60);
 
         mongoSettings.ReadConcern = ReadConcern.Majority;
-        mongoSettings.ReadPreference = ReadPreference.PrimaryPreferred;
-        mongoSettings.WriteConcern = WriteConcern.W2;
+        mongoSettings.ReadPreference = ReadPreference.Primary;
+        mongoSettings.WriteConcern = WriteConcern.WMajority;
         
         mongoSettings.ServerApi = new ServerApi(ServerApiVersion.V1, true);
 
